@@ -333,9 +333,9 @@ export class FooterPanel extends footer.FooterPanel {
                 label = "-";
             }
 
-            title = String.prototype.format(title, that.content.pageCaps, label);
+            title = String.format(title, that.content.pageCaps, label);
         } else {
-            title = String.prototype.format(title, that.content.imageCaps, canvasIndex + 1);
+            title = String.format(title, that.content.imageCaps, canvasIndex + 1);
         }
 
         that.$placemarkerDetailsTop.html(title);
@@ -348,10 +348,10 @@ export class FooterPanel extends footer.FooterPanel {
 
         if (result.rects.length == 1) {
             instancesFoundText = that.content.instanceFound;
-            instancesFoundText = String.prototype.format(instancesFoundText, terms);
+            instancesFoundText = String.format(instancesFoundText, terms);
         } else {
             instancesFoundText = that.content.instancesFound;
-            instancesFoundText = String.prototype.format(instancesFoundText, result.rects.length, terms);
+            instancesFoundText = String.format(instancesFoundText, result.rects.length, terms);
         }
 
         that.$placemarkerDetailsBottom.html(instancesFoundText);
@@ -480,9 +480,9 @@ export class FooterPanel extends footer.FooterPanel {
             }
 
             var lastCanvasOrderLabel = this.provider.getLastCanvasLabel();
-            this.$pagePositionLabel.html(String.prototype.format(displaying, this.content.page, label, lastCanvasOrderLabel));
+            this.$pagePositionLabel.html(String.format(displaying, this.content.page, label, lastCanvasOrderLabel));
         } else {
-            this.$pagePositionLabel.html(String.prototype.format(displaying, this.content.image, index + 1, this.provider.getTotalCanvases()));
+            this.$pagePositionLabel.html(String.format(displaying, this.content.image, index + 1, this.provider.getTotalCanvases()));
         }
     }
 

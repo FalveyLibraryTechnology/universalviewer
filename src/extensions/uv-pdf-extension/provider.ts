@@ -29,7 +29,7 @@ export class Provider extends baseProvider.BaseProvider implements IPDFProvider{
 
         var configUri = this.config.uri || '';
 
-        var script = String.prototype.format(template, this.manifestUri, this.sequenceIndex, configUri, width, height, esu);
+        var script = String.format(template, this.manifestUri, this.sequenceIndex, configUri, width, height, esu);
 
         return script;
     }

@@ -191,7 +191,7 @@ class AutoComplete{
 
         var that = this;
 
-        $.getJSON(String.prototype.format(this.autoCompleteUri, term), function (results) {
+        $.getJSON(String.format(this.autoCompleteUri, term), function (results) {
             that.listResults(results);
         });
     }

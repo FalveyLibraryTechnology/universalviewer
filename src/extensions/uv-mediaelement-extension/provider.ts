@@ -24,7 +24,7 @@ export class Provider extends baseProvider.BaseProvider implements IMediaElement
 
         var configUri = this.config.uri || '';
 
-        var script = String.prototype.format(template, this.manifestUri, this.sequenceIndex, configUri, width, height, esu);
+        var script = String.format(template, this.manifestUri, this.sequenceIndex, configUri, width, height, esu);
 
         return script;
     }
@@ -32,7 +32,7 @@ export class Provider extends baseProvider.BaseProvider implements IMediaElement
     getPosterImageUri(): string{
         var baseUri = this.options.mediaBaseUri || "";
         var template = this.options.mediaUriTemplate;
-        var uri = String.prototype.format(template, baseUri, this.sequence.extensions.posterImage);
+        var uri = String.format(template, baseUri, this.sequence.extensions.posterImage);
 
         return uri;
     }

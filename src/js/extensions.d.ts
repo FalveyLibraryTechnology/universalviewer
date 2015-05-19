@@ -7,46 +7,52 @@ interface HTMLElement{
     ontouchstart: any;
 }
 
-// string utils
-interface String {
-    format(template: string, ...args: any[]): string;
-    startsWith(text: string): boolean;
+interface StringExtensions {
+    b64_to_utf8(str: string): string;
+    contains(str: string): boolean;
     endsWith(text: string): boolean;
+    format(template: string, ...args: any[]): string;
+    fulltrim(): string;
     ltrim(): string;
     rtrim(): string;
-    fulltrim(): string;
-    toFileName(): string;
-    contains(str: string): boolean;
-    utf8_to_b64(str: string): string;
-    b64_to_utf8(str: string): string;
+    startsWith(text: string): boolean;
     toCssClass(): string;
+    toFileName(): string;
+    trim(): string;
+    utf8_to_b64(str: string): string;
 }
 
-// array utils
-interface Array<T>{
-    clone(): Array<T>;
-    last(): any;
+interface String extends StringExtensions {}
+interface StringConstructor extends StringExtensions {}
+
+interface ArrayExtensions{
+    clone(): any[];
     contains(val: any): boolean;
-    move(fromIndex: number, toIndex: number): void;
+    indexOf(searchElement: any, fromIndex?: number): number;
     indexOfTest(test: (element: any) => boolean, fromIndex?: number): number;
+    last(): any;
+    move(fromIndex: number, toIndex: number): void;
 }
+
+interface Array<T> extends ArrayExtensions{}
+interface ArrayConstructor extends ArrayExtensions{}
 
 interface JQuery {
     // plugins
-    ellipsisFill(text?: string): any;
-    swapClass(removeClass: string, addClass: string): void;
-    targetBlank(): void;  
-    verticalMargins(): number;
-    horizontalMargins(): number;
-    verticalPadding(): number;
-    horizontalPadding(): number;
-    toggleExpandText(chars: number, callback?: () => void);
-    ismouseover(): boolean;
-    equaliseHeight(reset?: boolean): any;
-    onPressed(callback: () => void): any;
-    onEnter(callback: () => void): any;
-    enable(): void;
     disable(): void;
+    ellipsisFill(text?: string): any;
+    enable(): void;
+    equaliseHeight(reset?: boolean): any;
+    horizontalMargins(): number;
+    horizontalPadding(): number;
+    ismouseover(): boolean;
+    onEnter(callback: () => void): any;
+    onPressed(callback: () => void): any;
+    swapClass(removeClass: string, addClass: string): void;
+    targetBlank(): void;
+    toggleExpandText(chars: number, callback?: () => void);
+    verticalMargins(): number;
+    verticalPadding(): number;
 
     // jsviews
     link: any;
@@ -58,11 +64,11 @@ interface JQuery {
 
 interface JQueryStatic {
     // pubsub
+    disposePubSub();
+    initPubSub();
     publish(event: string, eventObj?: any[]);
     subscribe(event: string, handler: Function);
     unsubscribe(event: string);
-    initPubSub();
-    disposePubSub();
 
     cookie(name: string);
 
@@ -75,25 +81,25 @@ interface JQueryStatic {
 
 // libs
 declare var easyXDM: any;
-declare var OpenSeadragon: any;
 declare var MediaElementPlayer: any;
-declare var PDFObject: any;
-declare var yepnope: any;
+declare var OpenSeadragon: any;
 declare var PDFJS: any;
+declare var PDFObject: any;
 declare var Sanitize: any;
+declare var yepnope: any;
 
 // app
 interface Window{
-    manifestCallback: any;
-    browserDetect: any;
-    trackEvent(category: string, action: string, label: string, value?: any);
-    trackVariable(slot: number, name: string, value: string, scope: number);
     $: any;
     _: any;
+    browserDetect: any;
     DEBUG: boolean;
-    webViewerLoad: any; // pdfjs
     IEXMLHttpRequest: any;
+    manifestCallback: any;
     openSeadragonViewer: any; // for testing convenience
+    trackEvent(category: string, action: string, label: string, value?: any);
+    trackVariable(slot: number, name: string, value: string, scope: number);
+    webViewerLoad: any; // pdfjs
 }
 
 // google

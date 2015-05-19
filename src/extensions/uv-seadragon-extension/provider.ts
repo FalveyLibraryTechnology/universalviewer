@@ -91,7 +91,7 @@ export class Provider extends baseProvider.BaseProvider implements ISeadragonPro
         var size = cropWidth + ',' + cropHeight;
         var rotation = 0;
         var quality = 'default';
-        var uri = String.prototype.format(this.config.options.iiifImageUriTemplate, baseUri, id, region, size, rotation, quality);
+        var uri = String.format(this.config.options.iiifImageUriTemplate, baseUri, id, region, size, rotation, quality);
 
         return uri;
     }
@@ -112,7 +112,7 @@ export class Provider extends baseProvider.BaseProvider implements ISeadragonPro
 
         var rotation = 0;
         var quality = 'default';
-        var uri = String.prototype.format(this.config.options.iiifImageUriTemplate, baseUri, id, region, size, rotation, quality);
+        var uri = String.format(this.config.options.iiifImageUriTemplate, baseUri, id, region, size, rotation, quality);
         return uri;
     }
 
@@ -171,7 +171,7 @@ export class Provider extends baseProvider.BaseProvider implements ISeadragonPro
 
         var configUri = this.config.uri || '';
 
-        var script = String.prototype.format(template, this.getSerializedLocales(), configUri, this.manifestUri, this.sequenceIndex, canvasIndex, zoom, rotation, width, height, esu);
+        var script = String.format(template, this.getSerializedLocales(), configUri, this.manifestUri, this.sequenceIndex, canvasIndex, zoom, rotation, width, height, esu);
 
         return script;
     }
@@ -264,7 +264,7 @@ export class Provider extends baseProvider.BaseProvider implements ISeadragonPro
 
         var searchUri = this.getSearchWithinServiceUri();
 
-        searchUri = String.prototype.format(searchUri, terms);
+        searchUri = String.format(searchUri, terms);
 
         $.getJSON(searchUri, (results: any) => {
             if (results.resources.length) {

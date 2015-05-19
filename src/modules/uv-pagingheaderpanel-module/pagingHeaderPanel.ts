@@ -210,9 +210,9 @@ export class PagingHeaderPanel extends baseHeader.HeaderPanel {
         var of = this.content.of;
 
         if ((<ISeadragonExtension>this.extension).getMode() === extension.Extension.PAGE_MODE) {
-            this.$total.html(String.prototype.format(of, this.provider.getLastCanvasLabel()));
+            this.$total.html(String.format(of, this.provider.getLastCanvasLabel()));
         } else {
-            this.$total.html(String.prototype.format(of, this.provider.getTotalCanvases()));
+            this.$total.html(String.format(of, this.provider.getTotalCanvases()));
         }
     }
 

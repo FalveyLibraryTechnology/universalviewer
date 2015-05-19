@@ -1,9 +1,19 @@
 /// <reference path="js/jquery.d.ts" />
 /// <reference path="js/extensions.d.ts" />
 
-//#region String
+String.prototype.b64_to_utf8 = function(): string {
+    return decodeURIComponent(escape(window.atob(this)));
+};
 
-String.prototype.format = function () {
+String.prototype.contains = function(str): boolean {
+    return this.indexOf(str) !== -1;
+};
+
+String.prototype.endsWith = function(str): boolean {
+    return this.indexOf(str, this.length - str.length) !== -1;
+};
+
+String.prototype.format = function(): string {
     var s = arguments[0];
     for (var i = 0; i < arguments.length - 1; i++) {
         var reg = new RegExp("\\{" + i + "\\}", "gm");
@@ -13,17 +23,23 @@ String.prototype.format = function () {
     return s;
 };
 
-String.prototype.startsWith = function (str) { return this.indexOf(str) == 0; };
-String.prototype.endsWith = function(str) { return this.indexOf(str, this.length - str.length) !== -1; };
-String.prototype.trim = function () { return this.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); };
-String.prototype.ltrim = function () { return this.replace(/^\s+/, ''); };
-String.prototype.rtrim = function () { return this.replace(/\s+$/, ''); };
-String.prototype.fulltrim = function () { return this.replace(/(?:(?:^|\n)\s+|\s+(?:$|\n))/g, '').replace(/\s+/g, ' '); };
-String.prototype.toFileName = function () { return this.replace(/[^a-z0-9]/gi, '_').toLowerCase(); };
-String.prototype.contains = function(str) { return this.indexOf(str) !== -1; };
-String.prototype.utf8_to_b64 = function(){ return window.btoa(unescape(encodeURIComponent(this))); };
-String.prototype.b64_to_utf8 = function(){ return decodeURIComponent(escape(window.atob(this))); };
-String.prototype.toCssClass = function() {
+String.prototype.fulltrim = function(): string {
+    return this.replace(/(?:(?:^|\n)\s+|\s+(?:$|\n))/g, '').replace(/\s+/g, ' ');
+};
+
+String.prototype.ltrim = function(): string {
+    return this.replace(/^\s+/, '');
+};
+
+String.prototype.rtrim = function(): string {
+    return this.replace(/\s+$/, '');
+};
+
+String.prototype.startsWith = function(str): boolean {
+    return this.indexOf(str) == 0;
+};
+
+String.prototype.toCssClass = function(): string {
     return this.replace(/[^a-z0-9]/g, function(s) {
         var c = s.charCodeAt(0);
         if (c == 32) return '-';
@@ -32,12 +48,32 @@ String.prototype.toCssClass = function() {
     });
 };
 
-//#endregion
+String.prototype.toFileName = function(): string {
+    return this.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+};
 
-//#region Array
+String.prototype.trim = function(): string {
+    return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+};
+
+String.prototype.utf8_to_b64 = function(): string {
+    return window.btoa(unescape(encodeURIComponent(this)));
+};
+
+if (!Array.prototype.clone) {
+    Array.prototype.clone = function () {
+        return this.slice(0);
+    };
+}
+
+if (!Array.prototype.contains) {
+    Array.prototype.contains = function (val: any){
+        return this.indexOf(val) !== -1;
+    };
+}
 
 if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function (searchElement: any, fromIndex?: number) {
+    Array.prototype.indexOf = function (searchElement: any, fromIndex?: number): number {
         var i = (fromIndex || 0);
         var j = this.length;
 
@@ -61,21 +97,9 @@ Array.prototype.indexOfTest = function (test: (element: any) => boolean, fromInd
     return -1;
 };
 
-if (!Array.prototype.clone) {
-    Array.prototype.clone = function () {
-        return this.slice(0);
-    };
-}
-
 if (!Array.prototype.last) {
     Array.prototype.last = function () {
         return this[this.length - 1];
-    };
-};
-
-if (!Array.prototype.contains) {
-    Array.prototype.contains = function (val: any){
-        return this.indexOf(val) !== -1;
     };
 }
 
@@ -85,13 +109,7 @@ Array.prototype.move = function (fromIndex, toIndex){
     this.splice(toIndex, 0, this.splice(fromIndex, 1)[0]);
 };
 
-//#endregion
-
-//#region underscore mixins
-
-//#endregion
-
-//#region browser detection
+// browser detection
 
 window.browserDetect = {
     init: function () {
@@ -147,7 +165,6 @@ window.browserDetect = {
 
 window.browserDetect.init();
 
-//#endregion
 
 export class Size{
     constructor (public width: number, public height: number){}
@@ -155,7 +172,7 @@ export class Size{
 
 export class Utils{
 
-    //#region String
+    // string
 
     static ellipsis(text: string, chars: number): string {
         if (text.length <= chars) return text;
@@ -192,17 +209,13 @@ export class Utils{
         }
     }
 
-    //#endregion
-
-    //#region Date
+    // date
 
     static getTimeStamp(): number {
         return new Date().getTime();
     }
 
-    //#endregion
-
-    //#region QueryString
+    // queryString
 
     static getHashParameter(key: string, doc?: Document): string {
         if (!doc) doc = window.document;
@@ -284,9 +297,7 @@ export class Utils{
         return kvp.join('&');
     }
 
-    //#endregion
-
-    //#region Math
+    // math
 
     static clamp(value: number, min: number, max: number): number {
         return Math.min(Math.max(value, min), max);
@@ -320,9 +331,7 @@ export class Utils{
         return new Size(Math.floor(width), Math.floor(height));
     }
 
-    //#endregion
-
-    //#region Boolean
+    // boolean
 
     static getBool(val: any, defaultVal: boolean): boolean {
         if (val === null || typeof (val) === 'undefined'){
@@ -332,9 +341,7 @@ export class Utils{
         return val;
     }
 
-    //#endregion
-
-    //#region Uri
+    // uri
 
     static getUrlParts(url: string): any {
         var a = document.createElement('a');
@@ -353,9 +360,7 @@ export class Utils{
         return relUri;
     }
 
-    //#endregion
-
-    //#region Events
+    // events
 
     static debounce(fn, debounceDuration) {
         // summary:
@@ -384,9 +389,7 @@ export class Utils{
         };
     }
 
-    //#endregion
-
-    //#region Elements
+    // elements
 
     static createElement(tagName: string, id?: string, className?: string): JQuery {
         var $elem = $(document.createElement(tagName));
@@ -401,21 +404,15 @@ export class Utils{
         return Utils.createElement('div', null, className)
     }
 
-    //#endregion
-
-    //#region Css
+    // css
 
     static loadCss(uri: string): void {
         $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', uri));
     }
 
-    //#endregion
-
-    //#region Objects
+    // objects
 
     static convertToPlainObject(obj: any): any {
         return JSON.parse(JSON.stringify(obj));
     }
-
-    //#endregion
 }

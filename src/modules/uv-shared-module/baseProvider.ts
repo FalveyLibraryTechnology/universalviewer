@@ -300,7 +300,7 @@ export class BaseProvider implements IProvider{
     getMediaUri(mediaUri: string): string{
         var baseUri = this.options.mediaBaseUri || "";
         var template = this.options.mediaUriTemplate;
-        var uri = String.prototype.format(template, baseUri, mediaUri);
+        var uri = String.format(template, baseUri, mediaUri);
 
         return uri;
     }
