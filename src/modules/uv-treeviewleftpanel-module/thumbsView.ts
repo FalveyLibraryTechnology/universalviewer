@@ -49,7 +49,7 @@ export class ThumbsView extends baseView.BaseView {
         $.templates({
             thumbsTemplate: '<div class="{{:~className()}}" data-src="{{>url}}" data-visible="{{>visible}}">\
                                 <div class="wrap" style="height:{{>height + ~extraHeight()}}px"></div>\
-                                <span class="index">{{:#index + 1}}</span>\
+                                <span class="index">{{>label}}&nbsp;</span>\
                                 <span class="label">{{>label}}&nbsp;</span>\
                              </div>\
                              {{if ~separator()}} \

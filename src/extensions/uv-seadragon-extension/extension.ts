@@ -381,9 +381,9 @@ export class Extension extends baseExtension.BaseExtension {
         if (Extension.mode) return Extension.mode;
 
         switch (this.provider.getManifestType()) {
-            case 'monograph':
-                return Extension.PAGE_MODE;
-                break;
+//            case 'monograph':
+//                return Extension.PAGE_MODE;
+//                break;
             case 'archive',
                  'boundmanuscript':
                 return Extension.IMAGE_MODE;

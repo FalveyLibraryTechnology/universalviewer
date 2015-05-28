@@ -83,6 +83,10 @@ export class PagingHeaderPanel extends baseHeader.HeaderPanel {
         this.$pageModeOption = $('<input type="radio" id="page" name="mode" tabindex="18"></input>');
         this.$modeOptions.append(this.$pageModeOption);
 
+        this.$imageModeOption.hide();
+        this.$pageModeLabel.hide();
+        this.$pageModeOption.hide();
+
         this.$search = $('<div class="search"></div>');
         this.$centerOptions.append(this.$search);
 
