@@ -20,7 +20,7 @@
     "extensions": "edsilv/extensions#~0.1.1",
     "utils": "edsilv/utils#~0.0.14",
     "uv-cy-GB-theme": "UniversalViewer/uv-cy-GB-theme",
-    "uv-en-GB-theme": "UniversalViewer/uv-en-GB-theme"
+    "uv-en-GB-theme": "FalveyLibraryTechnology/uv-en-GB-theme#vudiglib"
   },
   "devDependencies": {
     "r.js": "~2.1.18"
