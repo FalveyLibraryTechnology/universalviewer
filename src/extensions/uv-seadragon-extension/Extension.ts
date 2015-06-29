@@ -19,7 +19,7 @@ import Params = require("../../modules/uv-shared-module/Params");
 import RightPanel = require("../../modules/uv-shared-module/RightPanel");
 import SeadragonCenterPanel = require("../../modules/uv-seadragoncenterpanel-module/SeadragonCenterPanel");
 import Settings = require("../../modules/uv-shared-module/Settings");
-import SettingsDialogue = require("../../extensions/uv-seadragon-extension/SettingsDialogue");
+import SettingsDialogue = require("./SettingsDialogue");
 import Shell = require("../../modules/uv-shared-module/Shell");
 import ThumbsView = require("../../modules/uv-treeviewleftpanel-module/ThumbsView");
 import TreeView = require("../../modules/uv-treeviewleftpanel-module/TreeView");
@@ -138,7 +138,7 @@ class Extension extends BaseExtension {
             this.treeNodeSelected(data);
         });
 
-        $.subscribe(Commands.THUMB_SELECTED, (e, index: number) => {
+        $.subscribe(BaseCommands.THUMB_SELECTED, (e, index: number) => {
             this.viewPage(index);
         });
 

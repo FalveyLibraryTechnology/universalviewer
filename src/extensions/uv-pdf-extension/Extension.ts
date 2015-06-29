@@ -11,9 +11,11 @@ import IPDFProvider = require("./IPDFProvider");
 import IProvider = require("../../modules/uv-shared-module/IProvider");
 import LeftPanel = require("../../modules/uv-shared-module/LeftPanel");
 import MoreInfoRightPanel = require("../../modules/uv-moreinforightpanel-module/MoreInfoRightPanel");
+import Params = require("../../modules/uv-shared-module/Params");
 import PDFCenterPanel = require("../../modules/uv-pdfcenterpanel-module/PDFCenterPanel");
 import Provider = require("./Provider");
 import RightPanel = require("../../modules/uv-shared-module/RightPanel");
+import SettingsDialogue = require("./SettingsDialogue");
 import Shell = require("../../modules/uv-shared-module/Shell");
 import ThumbsView = require("../../modules/uv-treeviewleftpanel-module/ThumbsView");
 import TreeViewLeftPanel = require("../../modules/uv-treeviewleftpanel-module/TreeViewLeftPanel");
@@ -23,6 +25,7 @@ class Extension extends BaseExtension{
     $downloadDialogue: JQuery;
     $embedDialogue: JQuery;
     $helpDialogue: JQuery;
+    $settingsDialogue: JQuery;
     centerPanel: PDFCenterPanel;
     downloadDialogue: DownloadDialogue;
     embedDialogue: EmbedDialogue;
@@ -30,6 +33,7 @@ class Extension extends BaseExtension{
     headerPanel: HeaderPanel;
     leftPanel: TreeViewLeftPanel;
     rightPanel: MoreInfoRightPanel;
+    settingsDialogue: SettingsDialogue;
 
     constructor(bootstrapper: BootStrapper) {
         super(bootstrapper);
@@ -40,8 +44,8 @@ class Extension extends BaseExtension{
 
         var that = this;
 
-        $.subscribe(Commands.THUMB_SELECTED, (e, index: number) => {
-            window.open((<IPDFProvider>that.provider).getPDFUri());
+        $.subscribe(BaseCommands.THUMB_SELECTED, (e, index: number) => {
+            this.viewFile(index);
         });
 
         $.subscribe(BaseCommands.DOWNLOAD, (e) => {
@@ -69,7 +73,7 @@ class Extension extends BaseExtension{
         var browser = window.browserDetect.browser;
         var version = window.browserDetect.version;
 
-        if (browser == 'Explorer' && version <= 9) return true;
+        if (browser === 'Explorer' && version <= 9) return true;
         return false;
     }
 
@@ -96,9 +100,30 @@ class Extension extends BaseExtension{
         Shell.$overlays.append(this.$embedDialogue);
         this.embedDialogue = new EmbedDialogue(this.$embedDialogue);
 
+        this.$settingsDialogue = $('<div class="overlay settings"></div>');
+        Shell.$overlays.append(this.$settingsDialogue);
+        this.settingsDialogue = new SettingsDialogue(this.$settingsDialogue);
+
         if (this.isLeftPanelEnabled()){
             this.leftPanel.init();
         }
+
+        if (this.isRightPanelEnabled()){
+            this.rightPanel.init();
+        }
+    }
+
+    viewFile(canvasIndex: number): void {
+
+        // if it's a valid canvas index.
+        if (canvasIndex == -1) return;
+
+        this.viewCanvas(canvasIndex, () => {
+            var canvas = this.provider.getCanvasByIndex(canvasIndex);
+            $.publish(BaseCommands.OPEN_MEDIA, [canvas]);
+            this.setParam(Params.canvasIndex, canvasIndex);
+        });
+
     }
 }
 
