@@ -194,18 +194,18 @@ class PagingHeaderPanel extends HeaderPanel {
 
     setTitles(): void {
 
-        var mode;
-
-        if (this.isPageModeEnabled()) {
-            mode = this.content.page;
+        if (this.isPageModeEnabled()){
+            this.$firstButton.prop('title', this.content.firstPage);
+            this.$prevButton.prop('title', this.content.previousPage);
+            this.$nextButton.prop('title', this.content.nextPage);
+            this.$lastButton.prop('title', this.content.lastPage);
         } else {
-            mode = this.content.image;
+            this.$firstButton.prop('title', this.content.firstImage);
+            this.$prevButton.prop('title', this.content.previousImage);
+            this.$nextButton.prop('title', this.content.nextImage);
+            this.$lastButton.prop('title', this.content.lastImage);
         }
 
-        this.$firstButton.prop('title', this.content.first + " " + mode);
-        this.$prevButton.prop('title', this.content.previous + " " + mode);
-        this.$nextButton.prop('title', this.content.next + " " + mode);
-        this.$lastButton.prop('title', this.content.last + " " + mode);
         this.$searchButton.prop('title', this.content.go);
     }
 
@@ -259,7 +259,7 @@ class PagingHeaderPanel extends HeaderPanel {
             index -= 1;
 
             if (isNaN(index)){
-                this.extension.showDialogue(this.provider.config.modules.genericDialogue.content.invalidNumber);
+                this.extension.showMessage(this.provider.config.modules.genericDialogue.content.invalidNumber);
                 $.publish(BaseCommands.CANVAS_INDEX_CHANGE_FAILED);
                 return;
             }
@@ -267,7 +267,7 @@ class PagingHeaderPanel extends HeaderPanel {
             var asset = this.provider.getCanvasByIndex(index);
 
             if (!asset){
-                this.extension.showDialogue(this.provider.config.modules.genericDialogue.content.pageNotFound);
+                this.extension.showMessage(this.provider.config.modules.genericDialogue.content.pageNotFound);
                 $.publish(BaseCommands.CANVAS_INDEX_CHANGE_FAILED);
                 return;
             }

@@ -1,10 +1,13 @@
 import BootstrapParams = require("../../BootstrapParams");
 import BootStrapper = require("../../Bootstrapper");
 import CanvasType = require("./CanvasType");
+import IAccessToken = require("./IAccessToken");
 import IProvider = require("./IProvider");
 import Params = require("./Params");
 import RenderingFormat = require("./RenderingFormat");
+import Resource = require("./Resource");
 import ServiceProfile = require("./ServiceProfile");
+import Session = require("./Session");
 import Thumb = require("./Thumb");
 import TreeNode = require("./TreeNode");
 
@@ -151,6 +154,21 @@ class BaseProvider implements IProvider{
         }
 
         return null;
+    }
+
+    getRenderings(element: any): any[] {
+        if (element.rendering){
+            var renderings = element.rendering;
+
+            if (!$.isArray(renderings)){
+                renderings = [renderings];
+            }
+
+            return renderings;
+        }
+
+        // no renderings provided, default to element.
+        return [element];
     }
 
     getSequenceType(): string{
@@ -390,6 +408,8 @@ class BaseProvider implements IProvider{
             uri = canvas.resources[0].resource.service['@id'];
         } else if (canvas.images && canvas.images[0].resource.service){
             uri = canvas.images[0].resource.service['@id'];
+        } else if (canvas.thumbnail) {
+            return canvas.thumbnail;
         } else {
             return "";
         }
@@ -880,6 +900,67 @@ class BaseProvider implements IProvider{
 
     getSerializedLocales(): string {
         return this.serializeLocales(this.locales);
+    }
+
+    loadResource(resource: Resource, loginMethod: (loginService: string) => Promise<void>): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            resource.getData().then(() => {
+                if (resource.status === 200){ // ok
+                    resolve(resource);
+                } else if (resource.status === 401){ // unauthorized
+                    resolve(this.authorize(resource, loginMethod));
+                } else if (resource.status === 403){ // forbidden
+                    // todo: use config content
+                    reject("You do not have permission to view this item.");
+                } else {
+                    reject(resource.error.statusText);
+                }
+            });
+        });
+    }
+
+    // http://image-auth.iiif.io/api/image/2.1/authentication.html
+    authorize(resource: Resource, loginMethod: (loginService: string) => Promise<void>): Promise<any> {
+        return new Promise<any>((resolve) => {
+            if (!resource.getAccessToken()){
+                loginMethod(resource.loginService).then(() => {
+                    this.getAuthToken(resource.tokenService).then((token) => {
+                        Session.set(resource.tokenService, token, token.expiresIn);
+                        resolve(this.loadResource(resource, loginMethod));
+                    });
+                });
+            } else {
+                // the resource already has an access token
+                resolve(this.loadResource(resource, loginMethod));
+            }
+        });
+    }
+
+    getAuthToken(tokenServiceUrl: string): Promise<IAccessToken> {
+        return new Promise<IAccessToken>((resolve, reject) => {
+            $.getJSON(tokenServiceUrl + "?callback=?", (token: IAccessToken) => {
+                resolve(token);
+            }).fail((error) => {
+                reject(error);
+            });
+        });
+    }
+
+    loadResources(resources: Resource[], loginMethod: (loginService: string) => Promise<void>): Promise<Resource[]> {
+
+        var that = this;
+
+        return new Promise<Resource[]>((resolve) => {
+
+            var promises = _.map(resources, (resource: Resource) => {
+                return that.loadResource(resource, loginMethod);
+            });
+
+            Promise.all(promises)
+                .then(() => {
+                    resolve(resources)
+                });
+        });
     }
 }
 

@@ -3,7 +3,7 @@ import BaseProvider = require("../uv-shared-module/BaseProvider");
 import Commands = require("../../extensions/uv-seadragon-extension/Commands");
 import CenterPanel = require("../uv-shared-module/CenterPanel");
 import ISeadragonProvider = require("../../extensions/uv-seadragon-extension/ISeadragonProvider");
-import Page = require("../../extensions/uv-seadragon-extension/Page");
+import Resource = require("../../modules/uv-shared-module/Resource");
 import Params = require("../uv-shared-module/Params");
 import SearchResult = require("../../extensions/uv-seadragon-extension/SearchResult");
 import SearchResultRect = require("../../extensions/uv-seadragon-extension/SearchResultRect");
@@ -18,7 +18,7 @@ class SeadragonCenterPanel extends CenterPanel {
     isCreated: boolean = false;
     isFirstLoad: boolean = true;
     nextButtonEnabled: boolean = false;
-    pages: Page[];
+    pages: Resource[];
     prevButtonEnabled: boolean = false;
     title: string;
     userData: any;
@@ -158,18 +158,22 @@ class SeadragonCenterPanel extends CenterPanel {
 
         this.$zoomInButton = this.$viewer.find('div[title="Zoom in"]');
         this.$zoomInButton.attr('tabindex', 11);
+        this.$zoomInButton.prop('title', this.content.zoomIn);
         this.$zoomInButton.addClass('zoomIn');
 
         this.$zoomOutButton = this.$viewer.find('div[title="Zoom out"]');
         this.$zoomOutButton.attr('tabindex', 12);
+        this.$zoomOutButton.prop('title', this.content.zoomOut);
         this.$zoomOutButton.addClass('zoomOut');
 
         this.$goHomeButton = this.$viewer.find('div[title="Go home"]');
         this.$goHomeButton.attr('tabindex', 13);
+        this.$goHomeButton.prop('title', this.content.goHome);
         this.$goHomeButton.addClass('goHome');
 
         this.$rotateButton = this.$viewer.find('div[title="Rotate right"]');
         this.$rotateButton.attr('tabindex', 14);
+        this.$rotateButton.prop('title', this.content.rotateRight);
         this.$rotateButton.addClass('rotate');
 
         // events
@@ -289,19 +293,19 @@ class SeadragonCenterPanel extends CenterPanel {
 
         this.$spinner.show();
 
-        this.provider.getPages().then(() => {
-            this.viewer.open(Utils.Objects.ConvertToPlainObject(this.provider.pages));
+        this.extension.getImages().then((images: any) => {
+            this.viewer.open(images);
         });
     }
 
     positionPages() {
         var viewingDirection = this.provider.getViewingDirection();
 
-        // if there's more than one page, align them next to each other.
-        if (this.provider.pages.length > 1) {
+        // if there's more than one image, align them next to each other.
+        if (this.provider.images.length > 1) {
 
             // check if tilesources should be aligned horizontally or vertically
-            if (viewingDirection == "top-to-bottom" || viewingDirection == "bottom-to-top") {
+            if (viewingDirection === "top-to-bottom" || viewingDirection === "bottom-to-top") {
                 // vertical
                 var topPage = this.viewer.world.getItemAt(0);
                 var topPageBounds = topPage.getBounds(true);
@@ -423,11 +427,11 @@ class SeadragonCenterPanel extends CenterPanel {
 
         switch (viewingDirection){
             case "top-to-bottom" :
-                this.viewer.viewport.fitBounds(new OpenSeadragon.Rect(0, 0, 1, this.viewer.world.getItemAt(0).normHeight * this.provider.pages.length), true);
+                this.viewer.viewport.fitBounds(new OpenSeadragon.Rect(0, 0, 1, this.viewer.world.getItemAt(0).normHeight * this.provider.images.length), true);
                 break;
             case "left-to-right" :
             case "right-to-left" :
-                this.viewer.viewport.fitBounds(new OpenSeadragon.Rect(0, 0, this.provider.pages.length, this.viewer.world.getItemAt(0).normHeight), true);
+                this.viewer.viewport.fitBounds(new OpenSeadragon.Rect(0, 0, this.provider.images.length, this.viewer.world.getItemAt(0).normHeight), true);
                 break;
         }
     }

@@ -260,6 +260,13 @@ docReady(function() {
                 if (!$appFrame) return;
 
                 if (isFullScreen) {
+                    var offset = getOffset();
+
+                    $appFrame.css({
+                        'top': offset.top,
+                        'left': offset.left
+                    });
+
                     var viewport = getViewport();
 
                     $appFrame.width(viewport.width);
@@ -301,6 +308,8 @@ docReady(function() {
 
                     var offset = getOffset();
 
+                    // todo: prevent parent from having overflow:hidden?
+
                     $appFrame.css({
                         'position': 'absolute',
                         'z-index': 9999,
@@ -337,9 +346,12 @@ docReady(function() {
                 };
 
                 // if $app has an offsetParent that isn't the root
-                if (!$app.offsetParent().is(':root')){
-                    offset.top = $($app[0]).offset().top * -1;
-                    offset.left = $($app[0]).offset().left * -1;
+                var $offsetParent = $app.offsetParent();
+
+                if (!$offsetParent.is(':root') &&
+                    !$offsetParent.is('body')){
+                    offset.top = ($app.offset().top * -1) + $app.position().top;
+                    offset.left = ($app.offset().left * -1) + $app.position().left;
                 }
 
                 return offset;

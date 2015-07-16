@@ -303,10 +303,12 @@ class BaseExtension implements IExtension {
 
         $.publish(BaseCommands.CANVAS_INDEX_CHANGED, [canvasIndex]);
 
+        this.triggerSocket(BaseCommands.CANVAS_INDEX_CHANGED, canvasIndex);
+
         if (callback) callback(canvasIndex);
     }
 
-    showDialogue(message: string, acceptCallback?: any, buttonText?: string, allowClose?: boolean): void {
+    showMessage(message: string, acceptCallback?: any, buttonText?: string, allowClose?: boolean): void {
 
         this.closeActiveDialogue();
 

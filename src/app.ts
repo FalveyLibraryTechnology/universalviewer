@@ -1,13 +1,14 @@
 require.config({
     paths: {
         'browserdetect': 'lib/browserdetect',
+        'promise': 'lib/promise.min',
         'ext': 'lib/extensions',
         'jquery': 'lib/jquery-1.10.2.min',
         'jsviews': 'lib/jsviews.min',
         'l10n': 'lib/l10n',
         'length': 'lib/Length.min',
         'modernizr': 'lib/modernizr',
-        'plugins': 'lib/jquery.plugins',
+        'plugins': 'lib/jquery-plugins',
         'pubsub': 'lib/pubsub',
         'sanitize': 'lib/sanitize',
         'underscore': 'lib/underscore-min',
@@ -38,37 +39,36 @@ require.config({
 });
 
 require([
-        'Bootstrapper',
-        'browserdetect',
-        'ext',
-        'extensions/uv-mediaelement-extension/Extension',
-        'extensions/uv-mediaelement-extension/Provider',
-        'extensions/uv-pdf-extension/Extension',
-        'extensions/uv-pdf-extension/Provider',
-        'extensions/uv-seadragon-extension/Extension',
-        'extensions/uv-seadragon-extension/Provider',
-        'jquery',
-        'jsviews',
-        'l10n',
-        'length',
-        'modernizr',
-        'plugins',
-        'pubsub',
-        'sanitize',
-        'underscore',
-        'utils',
-        'yepnope',
-        'yepnopecss',
+    'Bootstrapper',
+    'extensions/uv-mediaelement-extension/Extension',
+    'extensions/uv-mediaelement-extension/Provider',
+    'extensions/uv-pdf-extension/Extension',
+    'extensions/uv-pdf-extension/Provider',
+    'extensions/uv-seadragon-extension/Extension',
+    'extensions/uv-seadragon-extension/Provider',
+    'browserdetect',
+    'ext',
+    'jquery',
+    'jsviews',
+    'l10n',
+    'length',
+    'modernizr',
+    'plugins',
+    'promise',
+    'pubsub',
+    'sanitize',
+    'underscore',
+    'utils',
+    'yepnope',
+    'yepnopecss',
     ], (
-        bootstrapper,
-        browserdetect,
-        ext,
-        mediaelementExtension,
-        mediaelementProvider,
-        pdfExtension,
-        pdfProvider,
-        seadragonExtension,
-        seadragonProvider
+    bootstrapper,
+    mediaelementExtension,
+    mediaelementProvider,
+    pdfExtension,
+    pdfProvider,
+    seadragonExtension,
+    seadragonProvider
     ) => {
 
         // todo: use a compiler flag (when available)
@@ -82,19 +82,19 @@ require([
             name: 'uv-seadragon-extension'
         };
 
-        extensions['video/iiif'] = {
+        extensions['video/ixif'] = {
             type: mediaelementExtension,
             provider: mediaelementProvider,
             name: 'uv-mediaelement-extension'
         };
 
-        extensions['audio/iiif'] = {
+        extensions['audio/ixif'] = {
             type: mediaelementExtension,
             provider: mediaelementProvider,
             name: 'uv-mediaelement-extension'
         };
 
-        extensions['pdf/iiif'] = {
+        extensions['pdf/ixif'] = {
             type: pdfExtension,
             provider: pdfProvider,
             name: 'uv-pdf-extension'

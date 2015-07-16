@@ -161,7 +161,7 @@ class GalleryView extends BaseView {
         for (var i = 0; i < thumbs.length; i++) {
             var $thumb = $(thumbs[i]);
             this.sizeThumb($thumb);
-            this.sizeThumbImage($thumb);
+            //this.sizeThumbImage($thumb);
         }
 
         this.equaliseHeights();
@@ -177,7 +177,7 @@ class GalleryView extends BaseView {
 
             if (thumbBottom >= scrollTop && thumbTop <= scrollTop + scrollHeight){
                 this.loadThumb($thumb, () => {
-                    this.sizeThumbImage($thumb);
+                    //this.sizeThumbImage($thumb);
                 });
             //    $thumb.find('.wrap').css('background', 'red');
             //} else {
@@ -187,7 +187,7 @@ class GalleryView extends BaseView {
     }
 
     equaliseHeights(): void {
-        //this.$thumbs.find('.thumb .wrap').equaliseHeight();
+        this.$thumbs.find('.thumb .wrap').equaliseHeight(false, true);
     }
 
     sizeThumb($thumb: JQuery) : void {
@@ -200,15 +200,12 @@ class GalleryView extends BaseView {
         $wrap.height(height * this.range);
     }
 
-    sizeThumbImage($thumb: JQuery) : void {
-        var width = $thumb.data('width');
-        var height = $thumb.data('height');
-
-        var $img = $thumb.find('img');
-
-        $img.width(width * this.range);
-        $img.height(height * this.range);
-    }
+    //sizeThumbImage($thumb: JQuery) : void {
+    //    var width = $thumb.data('width');
+    //    var height = $thumb.data('height');
+    //
+    //    var $img = $thumb.find('img');
+    //}
 
     loadThumb($thumb: JQuery, callback?: (img: JQuery) => void): void {
         var $wrap = $thumb.find('.wrap');
@@ -265,7 +262,10 @@ class GalleryView extends BaseView {
     }
 
     isPageModeEnabled(): boolean {
-        return this.config.options.pageModeEnabled && this.extension.getMode().toString() === Mode.page.toString();
+        if (typeof this.extension.getMode === "function") {
+            return this.config.options.pageModeEnabled && this.extension.getMode().toString() === Mode.page.toString();
+        }
+        return this.config.options.pageModeEnabled;
     }
 
     selectIndex(index): void {

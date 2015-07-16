@@ -35,7 +35,7 @@ module.exports = function (grunt) {
 
         pkg: packageJson,
 
-        ts: {
+        typescript: {
             dev: {
                 src: [
                     //'./src/_Version.ts',
@@ -45,7 +45,7 @@ module.exports = function (grunt) {
                 options: {
                     target: 'es3',
                     module: 'amd',
-                    sourcemap: true,
+                    sourceMap: true,
                     declarations: false,
                     nolib: false,
                     comments: true
@@ -56,7 +56,7 @@ module.exports = function (grunt) {
                 options: {
                     target: 'es3',
                     module: 'amd',
-                    sourcemap: false,
+                    sourceMap: false,
                     declarations: false,
                     nolib: false,
                     comments: false
@@ -78,7 +78,7 @@ module.exports = function (grunt) {
                     {
                         expand: true,
                         src: ['src/extensions/*/build/*.schema.json'],
-                        dest: '<%= dirs.examples %>/schema/',
+                        dest: '<%= dirs.build %>/schema/',
                         rename: function(dest, src) {
                             // get the extension name from the src string.
                             // src/extensions/[extension]/build/[locale].schema.json
@@ -228,7 +228,13 @@ module.exports = function (grunt) {
                         cwd: '<%= dirs.bower %>',
                         expand: true,
                         flatten: true,
-                        src: ['extensions/dist/extensions.js', 'utils/dist/utils.js'],
+                        src: [
+                            'es6-promise/promise.min.js',
+                            'extensions/dist/extensions.js',
+                            'utils/dist/utils.js',
+                            'jquery-plugins/dist/jquery-plugins.js',
+                            'Units/Length.min.js'
+                        ],
                         dest: '<%= dirs.lib %>'
                     },
                     {
@@ -236,7 +242,11 @@ module.exports = function (grunt) {
                         cwd: '<%= dirs.bower %>',
                         expand: true,
                         flatten: true,
-                        src: ['extensions/typings/extensions.d.ts', 'utils/dist/utils.d.ts'],
+                        src: [
+                            'extensions/typings/extensions.d.ts',
+                            'utils/dist/utils.d.ts',
+                            'jquery-plugins/typings/jquery-plugins.d.ts'
+                        ],
                         dest: '<%= dirs.typings %>'
                     }
                 ]
@@ -257,13 +267,26 @@ module.exports = function (grunt) {
                         src: ['**']
                     }
                 ]
+            },
+            tar: {
+                options: {
+                    mode: 'tar',
+                    archive: '<%= dirs.dist %>/<%= dirs.uv %>.tar'
+                },
+                files: [
+                    {
+                        expand: true,
+                        cwd: '<%= dirs.build %>/',
+                        src: ['**']
+                    }
+                ]
             }
         },
 
         exec: {
             // concatenate and compress with r.js
             build: {
-                cmd: 'node lib/r.js/dist/r.js -o baseUrl=src/ mainConfigFile=src/App.js name=App <%= global.minify %> out=<%= dirs.build %>/lib/app.js'
+                cmd: 'node lib/r.js/dist/r.js -o baseUrl=src/ mainConfigFile=src/app.js name=app <%= global.minify %> out=<%= dirs.build %>/lib/app.js'
             }
         },
 
@@ -315,6 +338,7 @@ module.exports = function (grunt) {
                 // replace uv version
                 src: [
                     '<%= dirs.examples %>/index.html',
+                    '<%= dirs.examples %>/noeditor.html',
                     '<%= dirs.examples %>/examples.js',
                     '<%= dirs.examples %>/uv.js',
                     '<%= dirs.examples %>/web.config'
@@ -384,7 +408,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-compress");
     grunt.loadNpmTasks("grunt-contrib-copy");
     grunt.loadNpmTasks("grunt-exec");
-    grunt.loadNpmTasks("grunt-ts");
+    grunt.loadNpmTasks("grunt-typescript");
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-protractor-runner');
     grunt.loadNpmTasks('grunt-sync');
@@ -402,10 +426,9 @@ module.exports = function (grunt) {
     grunt.registerTask('default', '', function(){
 
         grunt.task.run(
-            'ts:dev',
+            'typescript:dev',
             'clean:extension',
             'configure:apply',
-            'copy:schema',
             'theme:create'
         );
     });
@@ -423,11 +446,11 @@ module.exports = function (grunt) {
         if (minify) grunt.config.set('global.minify', '');
 
         grunt.task.run(
-            'ts:build',
+            'typescript:build',
             'clean:extension',
             'configure:apply',
-            'copy:schema',
             'clean:build',
+            'copy:schema',
             'copy:build',
             'exec:build',
             'replace:html',
@@ -442,14 +465,15 @@ module.exports = function (grunt) {
         );
     });
 
-    // compress build into .zip
+    // compress build into .zip and .tar
     grunt.registerTask('dist', '', function() {
 
         refresh();
 
         grunt.task.run(
             'clean:dist',
-            'compress'
+            'compress:zip',
+            'compress:tar'
         );
     });
 

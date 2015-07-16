@@ -1,6 +1,8 @@
 import BootstrapParams = require("../../BootstrapParams");
 import BootStrapper = require("../../Bootstrapper");
 import CanvasType = require("./CanvasType");
+import RenderingFormat = require("./RenderingFormat");
+import Resource = require("./Resource");
 import ServiceProfile = require("./ServiceProfile");
 import Thumb = require("./Thumb");
 import TreeNode = require("./TreeNode");
@@ -28,6 +30,8 @@ interface IProvider{
     getManifestSeeAlsoUri(manifest: any): string;
     getManifestType(): string;
     getMetaData(callback: (data: any) => any): void;
+    getRendering(resource: any, format: RenderingFormat): any
+    getRenderings(element: any): any[];
     getSeeAlso(): any;
     getSequenceType(): string;
     getService(resource: any, profile: ServiceProfile): any;
@@ -54,6 +58,8 @@ interface IProvider{
     isSeeAlsoEnabled(): boolean;
     isTotalCanvasesEven(): boolean;
     load(): void;
+    loadResource(resource: Resource, loginMethod: (loginService: string) => Promise<void>): Promise<Resource>;
+    loadResources(resources: Resource[], loginMethod: (loginService: string) => Promise<void>): Promise<Resource[]>;
     parseManifest(): void;
     parseStructure(): void;
     sanitize(html: string): string;
