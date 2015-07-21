@@ -93,6 +93,14 @@ module.exports = function (grunt) {
             },
             build: {
                 files: [
+                    {
+                        // copy image resources from Bower PDF.js into module
+                        expand: true,
+                        flatten: true,
+                        cwd: '<%= dirs.bower %>/pdfjs/web/images',
+                        src: ['*'],
+                        dest: '<%= dirs.modules %>/uv-pdfcenterpanel-module/img'
+                    },
                     // html
                     {
                         expand: true,
@@ -401,12 +409,28 @@ module.exports = function (grunt) {
             },
             dist: {
             }
+        },
+
+        uglify: {
+            pdf_js: {
+                files: {
+                    '<%= dirs.build %>/lib/pdf_combined.js': [
+                        '<%= dirs.bower %>/pdfjs/build/pdf.combined.js',
+                        '<%= dirs.bower %>/pdfjs/web/compatibility.js',
+                        '<%= dirs.build %>/lib/viewer.js'
+                    ],
+                    '<%= dirs.build %>/lib/pdf.worker.min.js': [
+                        '<%= dirs.bower %>/pdfjs/build/pdf.worker.js'
+                    ]
+                }
+            }
         }
     });
 
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.loadNpmTasks("grunt-contrib-compress");
     grunt.loadNpmTasks("grunt-contrib-copy");
+    grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-exec");
     grunt.loadNpmTasks("grunt-typescript");
     grunt.loadNpmTasks('grunt-contrib-connect');
@@ -457,6 +481,7 @@ module.exports = function (grunt) {
             'replace:js',
             'theme:create',
             'theme:dist',
+            'uglify:pdf_js',
             'replace:moduleimages',
             'replace:themeimages',
             'replace:examples',

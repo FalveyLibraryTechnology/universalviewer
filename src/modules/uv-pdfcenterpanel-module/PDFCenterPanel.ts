@@ -46,11 +46,7 @@ class PDFCenterPanel extends CenterPanel {
 
             // load viewer.html
             this.$content.load(viewerPath, () => {
-                if (window.DEBUG){
-                    PDFJS.workerSrc = 'extensions/uv-pdf-extension/lib/pdf.worker.min.js';
-                } else {
-                    PDFJS.workerSrc = 'lib/pdf.worker.min.js';
-                }
+                PDFJS.workerSrc = 'lib/pdf.worker.min.js';
 
                 PDFJS.DEFAULT_URL = pdfUri;
 
