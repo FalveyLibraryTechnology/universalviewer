@@ -93,14 +93,6 @@ module.exports = function (grunt) {
             },
             build: {
                 files: [
-                    {
-                        // copy image resources from Bower PDF.js into module
-                        expand: true,
-                        flatten: true,
-                        cwd: '<%= dirs.bower %>/pdfjs/web/images',
-                        src: ['*'],
-                        dest: '<%= dirs.modules %>/uv-pdfcenterpanel-module/img'
-                    },
                     // html
                     {
                         expand: true,
@@ -256,7 +248,15 @@ module.exports = function (grunt) {
                             'jquery-plugins/typings/jquery-plugins.d.ts'
                         ],
                         dest: '<%= dirs.typings %>'
-                    }
+                    },
+                    {
+                        // copy image resources from Bower PDF.js into module
+                        expand: true,
+                        flatten: true,
+                        cwd: '<%= dirs.bower %>/pdfjs/web/images',
+                        src: ['*'],
+                        dest: '<%= dirs.modules %>/uv-pdfcenterpanel-module/img'
+                    },
                 ]
             }
         },
