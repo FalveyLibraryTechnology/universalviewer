@@ -3,6 +3,8 @@ import BaseProvider = require("../uv-shared-module/BaseProvider");
 import CenterPanel = require("../uv-shared-module/CenterPanel");
 import IPDFProvider = require("../../extensions/uv-pdf-extension/IPDFProvider");
 
+declare var DEFAULT_URL: string;
+
 class PDFCenterPanel extends CenterPanel {
 
     constructor($element: JQuery) {
@@ -48,7 +50,7 @@ class PDFCenterPanel extends CenterPanel {
             this.$content.load(viewerPath, () => {
                 PDFJS.workerSrc = 'lib/pdf.worker.min.js';
 
-                PDFJS.DEFAULT_URL = pdfUri;
+                DEFAULT_URL = pdfUri;
 
                 window.webViewerLoad();
 
