@@ -413,6 +413,11 @@ module.exports = function (grunt) {
 
         uglify: {
             pdf_js: {
+                options: {
+                    'preserveComments': function (node, comment) {
+                        return comment.value.indexOf('Copyright') >= 0;
+                    }
+                },
                 files: {
                     '<%= dirs.build %>/lib/pdf_combined.js': [
                         '<%= dirs.bower %>/pdfjs/build/pdf.combined.js',
