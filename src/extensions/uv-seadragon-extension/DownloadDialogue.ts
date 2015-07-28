@@ -1,6 +1,6 @@
 import BaseCommands = require("../../modules/uv-shared-module/Commands");
 import BaseDownloadDialogue = require("../../modules/uv-dialogues-module/DownloadDialogue");
-import DownloadOption = require("../../modules/uv-dialogues-module/DownloadOption");
+import DownloadOption = require("../../modules/uv-shared-module/DownloadOption");
 import ISeadragonExtension = require("./ISeadragonExtension");
 import ISeadragonProvider = require("./ISeadragonProvider");
 
@@ -137,7 +137,8 @@ class DownloadDialogue extends BaseDownloadDialogue {
         }
 
         var settings: ISettings = this.provider.getSettings();
-        if (settings.pagingEnabled) {
+
+        if (this.provider.isPagingEnabled() && settings.pagingEnabled) {
             this.$pagingNote.show();
         } else {
             this.$pagingNote.hide();
