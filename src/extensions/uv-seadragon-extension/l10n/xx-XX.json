@@ -4,7 +4,17 @@
   },
   "options": {
   },
+  "content": {
+    "canvasIndexOutOfRange": "Canvas index out of range. (xx-XX)",
+    "degradedResourceMessage": "Please log in to view at full quality. (xx-XX)",
+    "degradedResourceLogin": "log in (xx-XX)"
+  },
   "modules": {
+    "clickThroughDialogue": {
+      "content": {
+        "viewTerms": "Read Full Terms and Conditions (xx-XX)"
+      }
+    },
     "dialogue": {
       "content": {
         "close": "Close (xx-XX)"
@@ -70,6 +80,7 @@
         "close": "Close (xx-XX)",
         "emptyValue": "Please enter a value (xx-XX)",
         "first": "First (xx-XX)",
+        "folio": "Folio (xx-XX)",
         "go": "Go (xx-XX)",
         "help": "Help (xx-XX)",
         "image": "Image (xx-XX)",
@@ -121,7 +132,8 @@
         "locale": "Locale (xx-XX)",
         "pagingEnabled": "Two Page View (xx-XX)",
         "preserveViewport": "Preserve Zoom (xx-XX)",
-        "title": "Settings (xx-XX)"
+        "title": "Settings (xx-XX)",
+        "website": "<a href='https://github.com/universalviewer/universalviewer'>more info (xx-XX)</a>"
       }
     },
     "treeViewLeftPanel": {

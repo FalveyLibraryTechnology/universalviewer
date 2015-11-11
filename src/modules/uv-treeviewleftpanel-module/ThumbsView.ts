@@ -1,11 +1,11 @@
-import BaseCommands = require("../uv-shared-module/Commands");
+import BaseCommands = require("../uv-shared-module/BaseCommands");
 import BaseView = require("../uv-shared-module/BaseView");
 import Commands = require("../../extensions/uv-seadragon-extension/Commands");
 import IProvider = require("../uv-shared-module/IProvider");
+import ISeadragonExtension = require("../../extensions/uv-seadragon-extension/ISeadragonExtension");
 import ISeadragonProvider = require("../../extensions/uv-seadragon-extension/ISeadragonProvider");
 import Mode = require("../../extensions/uv-seadragon-extension/Mode");
 import Shell = require("../uv-shared-module/Shell");
-import Thumb = require("../uv-shared-module/Thumb");
 
 class ThumbsView extends BaseView {
 
@@ -15,7 +15,7 @@ class ThumbsView extends BaseView {
     isOpen: boolean = false;
     lastThumbClickedIndex: number;
 
-    public thumbs: Thumb[];
+    public thumbs: Manifesto.Thumb[];
 
     constructor($element: JQuery) {
         super($element, true, true);
@@ -40,18 +40,30 @@ class ThumbsView extends BaseView {
             this.loadThumbs();
         });
 
+        $.subscribe(BaseCommands.CLICKTHROUGH_OCCURRED, () => {
+            this.loadThumbs();
+        });
+
+        $.subscribe(Commands.SEARCH_PREVIEW_START, (e, canvasIndex) => {
+            this.searchPreviewStart(canvasIndex);
+        });
+
+        $.subscribe(Commands.SEARCH_PREVIEW_FINISH, () => {
+            this.searchPreviewFinish();
+        });
+
         this.$thumbs = $('<div class="thumbs"></div>');
         this.$element.append(this.$thumbs);
 
-        this.$thumbs.addClass(this.provider.getViewingDirection()); // defaults to "left-to-right"
+        this.$thumbs.addClass(this.provider.getViewingDirection().toString()); // defaults to "left-to-right"
 
         var that = this;
 
         $.templates({
-            thumbsTemplate: '<div class="{{:~className()}}" data-src="{{>url}}" data-visible="{{>visible}}">\
+            thumbsTemplate: '<div class="{{:~className()}}" data-src="{{>uri}}" data-visible="{{>visible}}">\
                                 <div class="wrap" style="height:{{>height + ~extraHeight()}}px"></div>\
                                 <span class="index">{{:#index + 1}}</span>\
-                                <span class="label">{{>label}}&nbsp;</span>\
+                                <span class="label" title="{{>label}}">{{>label}}&nbsp;</span>\
                              </div>\
                              {{if ~separator()}} \
                                  <div class="separator"></div> \
@@ -62,8 +74,8 @@ class ThumbsView extends BaseView {
 
         $.views.helpers({
             separator: function(){
-                var viewingDirection = that.provider.getViewingDirection();
-                if (viewingDirection === "top-to-bottom" || viewingDirection === "bottom-to-top"){
+                var viewingDirection = that.provider.getViewingDirection().toString();
+                if (viewingDirection === manifesto.ViewingDirection.topToBottom().toString() || viewingDirection === manifesto.ViewingDirection.bottomToTop().toString()){
                     return true; // one thumb per line
                 }
                 // two thumbs per line
@@ -79,12 +91,13 @@ class ThumbsView extends BaseView {
                     className += " first";
                 }
 
-                if (!this.data.url){
+                if (!this.data.uri){
                     className += " placeholder";
                 }
 
-                var viewingDirection = that.provider.getViewingDirection();
-                if (viewingDirection === "top-to-bottom" || viewingDirection === "bottom-to-top"){
+                var viewingDirection = that.provider.getViewingDirection().toString();
+
+                if (viewingDirection === manifesto.ViewingDirection.topToBottom().toString() || viewingDirection === manifesto.ViewingDirection.bottomToTop().toString()){
                     className += " oneCol";
                 } else {
                     className += " twoCol";
@@ -168,7 +181,7 @@ class ThumbsView extends BaseView {
 
         for (var i = thumbRange.start; i <= thumbRange.end; i++) {
 
-            var $thumb = $(this.$thumbs.find('.thumb')[i]);
+            var $thumb = this.getThumbByIndex(i);
             var $wrap = $thumb.find('.wrap');
 
             // if no img has been added yet
@@ -212,7 +225,8 @@ class ThumbsView extends BaseView {
     }
 
     isPDF(): boolean{
-        return (this.provider.getCanvasType().contains("pdf"));
+        // todo: use constants
+        return (this.provider.getCanvasType().toString().contains("pdf"));
     }
 
     setLabel(): void {
@@ -232,8 +246,8 @@ class ThumbsView extends BaseView {
     }
 
     isPageModeEnabled(): boolean {
-        if (typeof this.extension.getMode === "function") {
-            return this.config.options.pageModeEnabled && this.extension.getMode().toString() === Mode.page.toString();
+        if (typeof (<ISeadragonExtension>this.extension).getMode === "function") {
+            return this.config.options.pageModeEnabled && (<ISeadragonExtension>this.extension).getMode().toString() === Mode.page.toString();
         }
         return this.config.options.pageModeEnabled;
     }
@@ -245,15 +259,15 @@ class ThumbsView extends BaseView {
 
         if (!this.thumbs || !this.thumbs.length) return;
 
-        this.$thumbs.find('.thumb').removeClass('selected');
+        this.getAllThumbs().removeClass('selected');
 
-        this.$selectedThumb = $(this.$thumbs.find('.thumb')[index]);
+        this.$selectedThumb = this.getThumbByIndex(index);
 
         if (this.provider.isPagingSettingEnabled()){
             var indices = this.provider.getPagedIndices(index);
 
             _.each(indices, (index: number) => {
-                $(this.$thumbs.find('.thumb')[index]).addClass('selected');
+                this.getThumbByIndex(index).addClass('selected');
             });
         } else {
             this.$selectedThumb.addClass('selected');
@@ -269,9 +283,32 @@ class ThumbsView extends BaseView {
         this.loadThumbs(index);
     }
 
+    getAllThumbs(): JQuery {
+        return this.$thumbs.find('.thumb');
+    }
+
+    getThumbByIndex(canvasIndex): JQuery {
+        return $(this.getAllThumbs()[canvasIndex])
+    }
+
+    scrollToThumb(canvasIndex: number): void {
+        var $thumb = this.getThumbByIndex(canvasIndex)
+        this.$element.scrollTop($thumb.position().top);
+    }
+    
+    searchPreviewStart(canvasIndex: number): void {
+        this.scrollToThumb(canvasIndex);
+        var $thumb = this.getThumbByIndex(canvasIndex);
+        $thumb.addClass('searchpreview');
+    }
+
+    searchPreviewFinish(): void {
+        this.scrollToThumb(this.provider.canvasIndex);
+        this.getAllThumbs().removeClass('searchpreview');
+    }
+
     resize(): void {
         super.resize();
-
     }
 }
 

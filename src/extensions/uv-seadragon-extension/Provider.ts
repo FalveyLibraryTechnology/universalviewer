@@ -1,15 +1,13 @@
-import BootStrapper = require("../../Bootstrapper");
 import BaseProvider = require("../../modules/uv-shared-module/BaseProvider");
-import IAccessToken = require("../../modules/uv-shared-module/IAccessToken");
+import BootStrapper = require("../../Bootstrapper");
+import ExternalResource = require("../../modules/uv-shared-module/ExternalResource");
 import ISeadragonProvider = require("./ISeadragonProvider");
 import SearchResult = require("./SearchResult");
 import SearchResultRect = require("./SearchResultRect");
-import Resource = require("../../modules/uv-shared-module/Resource");
-import ServiceProfile = require("../../modules/uv-shared-module/ServiceProfile");
+import TreeSortType = require("./TreeSortType");
 
 class Provider extends BaseProvider implements ISeadragonProvider{
 
-    images: Resource[];
     searchResults: SearchResult[] = [];
 
     constructor(bootstrapper: BootStrapper) {
@@ -24,7 +22,7 @@ class Provider extends BaseProvider implements ISeadragonProvider{
         }, bootstrapper.config.options);
     }
 
-    getCroppedImageUri(canvas: any, viewer: any): string {
+    getCroppedImageUri(canvas: Manifesto.ICanvas, viewer: any): string {
 
         if (!viewer) return null;
         if (!viewer.viewport) return null;
@@ -37,7 +35,7 @@ class Provider extends BaseProvider implements ISeadragonProvider{
         var left = Math.max(0, bounds.x);
 
         // change top to be normalised value proportional to height of image, not width (as per OSD).
-        top = 1 / (canvas.height / parseInt(String(canvas.width * top)));
+        top = 1 / (canvas.getHeight() / parseInt(String(canvas.getWidth() * top)));
 
         // get on-screen pixel sizes.
 
@@ -45,8 +43,8 @@ class Provider extends BaseProvider implements ISeadragonProvider{
         var viewportHeightPx = containerSize.y;
 
         var imageWidthPx = parseInt(String(viewportWidthPx * zoom));
-        var ratio = canvas.width / imageWidthPx;
-        var imageHeightPx = parseInt(String(canvas.height / ratio));
+        var ratio = canvas.getWidth() / imageWidthPx;
+        var imageHeightPx = parseInt(String(canvas.getHeight() / ratio));
 
         var viewportLeftPx = parseInt(String(left * imageWidthPx));
         var viewportTopPx = parseInt(String(top * imageHeightPx));
@@ -66,13 +64,13 @@ class Provider extends BaseProvider implements ISeadragonProvider{
 
         // get original image pixel sizes.
 
-        var ratio2 = canvas.width / imageWidthPx;
+        var ratio2 = canvas.getWidth() / imageWidthPx;
 
         var widthPx = parseInt(String(cropWidth * ratio2));
         var heightPx = parseInt(String(cropHeight * ratio2));
 
-        var topPx = parseInt(String(canvas.height * top));
-        var leftPx = parseInt(String(canvas.width * left));
+        var topPx = parseInt(String(canvas.getHeight() * top));
+        var leftPx = parseInt(String(canvas.getWidth() * left));
 
         if (topPx < 0) topPx = 0;
         if (leftPx < 0) leftPx = 0;
@@ -91,7 +89,7 @@ class Provider extends BaseProvider implements ISeadragonProvider{
         return uri;
     }
 
-    getConfinedImageUri(canvas: any, width: number, height?: number): string {
+    getConfinedImageUri(canvas: Manifesto.ICanvas, width: number, height?: number): string {
         var baseUri = this.getImageBaseUri(canvas);
 
         // {baseuri}/{id}/{region}/{size}/{rotation}/{quality}.jpg
@@ -111,87 +109,83 @@ class Provider extends BaseProvider implements ISeadragonProvider{
         return uri;
     }
 
-    getImageId(canvas: any): string {
-        var id = this.getImageUri(canvas);
+    getImageId(canvas: Manifesto.ICanvas): string {
+        var id = this.getInfoUri(canvas);
         // First trim off info.json, then extract ID:
         id = id.substr(0, id.lastIndexOf("/"));
         return id.substr(id.lastIndexOf("/") + 1);
     }
 
-    getImageBaseUri(canvas: any): string {
-        var uri = this.getImageUri(canvas);
+    getImageBaseUri(canvas: Manifesto.ICanvas): string {
+        var uri = this.getInfoUri(canvas);
         // First trim off info.json, then trim off ID....
         uri = uri.substr(0, uri.lastIndexOf("/"));
         return uri.substr(0, uri.lastIndexOf("/"));
     }
 
-    getImageUri(canvas: any): string{
+    getInfoUri(canvas: Manifesto.ICanvas): string{
+        var infoUri: string;
 
-        var imageUri;
+        var images: Manifesto.IAnnotation[] = canvas.getImages();
 
-        if (canvas.resources){
-            imageUri = canvas.resources[0].resource.service['@id'];
-        } else if (canvas.images && canvas.images[0].resource.service){
-            imageUri = canvas.images[0].resource.service['@id'];
-        }
+        if (images && images.length) {
+            var firstImage = images[0];
+            var resource: Manifesto.IResource = firstImage.getResource();
+            var services: Manifesto.IService[] = resource.getServices();
 
-        if (!imageUri){
-            // todo: use compiler flag (when available)
-            imageUri = (window.DEBUG)? '/src/extensions/uv-seadragon-extension/lib/imageunavailable.json' : 'lib/imageunavailable.json';
-        } else {
-            if (!imageUri.endsWith('/')) {
-                imageUri += '/';
+            for (var i = 0; i < services.length; i++) {
+                var service: Manifesto.IService = services[i];
+                var id = service.id;
+
+                if (!_.endsWith(id, '/')) {
+                    id += '/';
+                }
+
+                if (manifesto.isImageProfile(service.getProfile())){
+                    infoUri = id + 'info.json';
+                }
             }
-            // no longer necessary as OSD isn't handling info.json requests
-            //imageUri += this.corsEnabled() ? 'info.json' : 'info.js';
-            imageUri += 'info.json';
         }
 
-        return imageUri;
+        if (!infoUri){
+            // todo: use compiler flag (when available)
+            infoUri = (window.DEBUG)? '/src/extensions/uv-seadragon-extension/lib/imageunavailable.json' : 'lib/imageunavailable.json';
+        }
+
+        return infoUri;
     }
 
-    getEmbedScript(canvasIndex: number, zoom: string, width: number, height: number, rotation: number, embedTemplate: string): string{
-
-        var esu = this.options.embedScriptUri || this.embedScriptUri;
-
-        var template = this.options.embedTemplate || embedTemplate;
+    getEmbedScript(template: string, width: number, height: number, zoom: string, rotation: number): string{
 
         var configUri = this.config.uri || '';
 
-        var script = String.format(template, this.getSerializedLocales(), configUri, this.manifestUri, this.sequenceIndex, canvasIndex, zoom, rotation, width, height, esu);
+        var script = String.format(template, this.getSerializedLocales(), configUri, this.manifestUri, this.collectionIndex, this.manifestIndex, this.sequenceIndex, this.canvasIndex, zoom, rotation, width, height, this.embedScriptUri);
 
         return script;
     }
 
-    getImages(loginMethod: (loginService: string) => Promise<void>,
-              getAccessTokenMethod: (tokenServiceUrl: string) => Promise<IAccessToken>,
-              storeAccessTokenMethod: (resource: Resource, token: IAccessToken) => Promise<void>,
-              getStoredAccessTokenMethod: (tokenService: string) => Promise<IAccessToken>,
-              handleResourceResponse: (resource: Resource) => Promise<any>): Promise<Resource[]> {
+    getPagedIndices(canvasIndex?: number): number[]{
+        if (typeof(canvasIndex) === 'undefined') canvasIndex = this.canvasIndex;
 
-        var indices = this.getPagedIndices();
-        var images = [];
+        var indices = [];
 
-        _.each(indices, (index) => {
-            var r: Resource = new Resource(this);
-            r.dataUri = this.getImageUri(this.getCanvasByIndex(index));
-            images.push(r);
-        });
+        if (!this.isPagingSettingEnabled()) {
+            indices.push(this.canvasIndex);
+        } else {
+            if (this.isFirstCanvas(canvasIndex) || (this.isLastCanvas(canvasIndex) && this.isTotalCanvasesEven())){
+                indices = [canvasIndex];
+            } else if (canvasIndex % 2){
+                indices = [canvasIndex, canvasIndex + 1];
+            } else {
+                indices = [canvasIndex - 1, canvasIndex];
+            }
 
-        return new Promise<any[]>((resolve) => {
-            this.loadResources(
-                images,
-                loginMethod,
-                getAccessTokenMethod,
-                storeAccessTokenMethod,
-                getStoredAccessTokenMethod,
-                handleResourceResponse).then((resources: Resource[]) => {
-                this.images = _.map(resources, (resource: Resource) => {
-                    return resource.data;
-                });
-                resolve(Utils.Objects.ConvertToPlainObject(this.images));
-            });
-        });
+            if (this.getViewingDirection().toString() === manifesto.ViewingDirection.rightToLeft().toString()){
+                indices = indices.reverse();
+            }
+        }
+
+        return indices;
     }
 
     isSearchWithinEnabled(): boolean {
@@ -206,35 +200,33 @@ class Provider extends BaseProvider implements ISeadragonProvider{
         return true;
     }
 
-    getAutoCompleteService(): string {
-        return this.getService(this.manifest, ServiceProfile.autoComplete);
+    getAutoCompleteService(): Manifesto.IService {
+        var service: Manifesto.IService = this.getSearchWithinService();
+        if (!service) return null;
+        return service.getService(manifesto.ServiceProfile.autoComplete());
     }
 
     getAutoCompleteUri(): string{
         var service = this.getAutoCompleteService();
-
         if (!service) return null;
-
-        var uri = service["@id"];
-        uri = uri + "{0}";
-        return uri;
+        return service.id + '?q={0}';
     }
 
-    getSearchWithinService(): string {
-        return this.getService(this.manifest, ServiceProfile.searchWithin);
+    getSearchWithinService(): Manifesto.IService {
+        return this.manifest.getService(manifesto.ServiceProfile.searchWithin());
     }
 
     getSearchWithinServiceUri(): string {
-        var service = this.getSearchWithinService();
+        var service: Manifesto.IService = this.getSearchWithinService();
 
         if (!service) return null;
 
-        var uri = service["@id"];
-        uri = uri + "{0}";
+        var uri = service.id;
+        uri = uri + "?q={0}";
         return uri;
     }
 
-    searchWithin(terms: string, callback: (results: any) => void): void {
+    searchWithin(terms: string, cb: (results: any) => void): void {
         var that = this;
 
         var searchUri = this.getSearchWithinServiceUri();
@@ -242,11 +234,11 @@ class Provider extends BaseProvider implements ISeadragonProvider{
         searchUri = String.format(searchUri, terms);
 
         $.getJSON(searchUri, (results: any) => {
-            if (results.resources.length) {
+            if (results.resources && results.resources.length) {
                 that.parseSearchWithinResults(results);
             }
 
-            callback(results);
+            cb(results);
         });
     }
 
@@ -256,7 +248,7 @@ class Provider extends BaseProvider implements ISeadragonProvider{
         for (var i = 0; i < results.resources.length; i++) {
             var r = results.resources[i];
 
-            var sr = new SearchResult(r);
+            var sr: SearchResult = new SearchResult(r, this);
 
             var match = this.getSearchResultByCanvasIndex(sr.canvasIndex);
 
@@ -276,6 +268,229 @@ class Provider extends BaseProvider implements ISeadragonProvider{
             }
         }
         return null;
+    }
+
+    // returns a list of treenodes for each decade.
+    // expanding a decade generates a list of years
+    // expanding a year gives a list of months containing issues
+    // expanding a month gives a list of issues.
+    getSortedTree(sortType: TreeSortType): Manifesto.TreeNode {
+
+        var tree = this.iiifResource.getTree();
+        var sortedTree = manifesto.getTreeNode();
+
+        if (sortType === TreeSortType.date){
+            this.getSortedTreeNodesByDate(sortedTree, tree);
+        } else if (sortType === TreeSortType.none) {
+            sortedTree = tree;
+        }
+
+        return sortedTree;
+    }
+
+    getSortedTreeNodesByDate(sortedTree: Manifesto.TreeNode, tree: Manifesto.TreeNode): void{
+
+        var all: Manifesto.TreeNode[] = tree.nodes.en().traverseUnique(node => node.nodes)
+            .where((n) => n.data.type === manifesto.TreeNodeType.collection().toString() ||
+                          n.data.type === manifesto.TreeNodeType.manifest().toString()).toArray();
+
+        //var collections: Manifesto.TreeNode[] = tree.nodes.en().traverseUnique(n => n.nodes)
+        //    .where((n) => n.data.type === manifesto.TreeNodeType.collection().toString()).toArray();
+
+        var manifests: Manifesto.TreeNode[] = tree.nodes.en().traverseUnique(n => n.nodes)
+            .where((n) => n.data.type === manifesto.TreeNodeType.manifest().toString()).toArray();
+
+        this.createDecadeNodes(sortedTree, all);
+        this.sortDecadeNodes(sortedTree);
+        this.createYearNodes(sortedTree, all);
+        this.sortYearNodes(sortedTree);
+        this.createMonthNodes(sortedTree, manifests);
+        this.sortMonthNodes(sortedTree);
+        this.createDateNodes(sortedTree, manifests);
+
+        this.pruneDecadeNodes(sortedTree);
+    }
+
+    createDecadeNodes(rootNode: Manifesto.TreeNode, nodes: Manifesto.TreeNode[]): void{
+        var decadeNode: Manifesto.TreeNode;
+
+        for (var i = 0; i < nodes.length; i++) {
+            var node: Manifesto.TreeNode = nodes[i];
+            var year = this.getNodeYear(node);
+            var decade = Number(year.toString().substr(2, 1));
+            var endYear = Number(year.toString().substr(0, 3) + "9");
+
+            if(!this.getDecadeNode(rootNode, year)){
+                decadeNode = manifesto.getTreeNode();
+                decadeNode.label = year + " - " + endYear;
+                decadeNode.navDate = node.navDate;
+                decadeNode.data.startYear = year;
+                decadeNode.data.endYear = endYear;
+                rootNode.addNode(decadeNode);
+            }
+        }
+    }
+
+    // delete any empty decades
+    pruneDecadeNodes(rootNode: Manifesto.TreeNode): void {
+        var pruned: Manifesto.TreeNode[] = [];
+
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var n = rootNode.nodes[i];
+            if (!n.nodes.length){
+                pruned.push(n);
+            }
+        }
+
+        for (var j = 0; j < pruned.length; j++){
+            var p = pruned[j];
+
+            rootNode.nodes.remove(p);
+        }
+    }
+
+    sortDecadeNodes(rootNode: Manifesto.TreeNode): void {
+        rootNode.nodes = rootNode.nodes.sort(function(a, b) {
+            return a.data.startYear - b.data.startYear;
+        });
+    }
+
+    getDecadeNode(rootNode: Manifesto.TreeNode, year: number): Manifesto.TreeNode{
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var n = rootNode.nodes[i];
+            if (year >= n.data.startYear && year <= n.data.endYear) return n;
+        }
+
+        return null;
+    }
+
+    createYearNodes(rootNode: Manifesto.TreeNode, nodes: Manifesto.TreeNode[]): void{
+        var yearNode: Manifesto.TreeNode;
+
+        for (var i = 0; i < nodes.length; i++) {
+            var node: Manifesto.TreeNode = nodes[i];
+            var year = this.getNodeYear(node);
+            var decadeNode = this.getDecadeNode(rootNode, year);
+
+            if(decadeNode && !this.getYearNode(decadeNode, year)){
+                yearNode = manifesto.getTreeNode();
+                yearNode.label = year.toString();
+                yearNode.navDate = node.navDate;
+                yearNode.data.year = year;
+
+                decadeNode.addNode(yearNode);
+            }
+        }
+    }
+
+    sortYearNodes(rootNode: Manifesto.TreeNode): void {
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var decadeNode = rootNode.nodes[i];
+
+            decadeNode.nodes = decadeNode.nodes.sort((a: Manifesto.TreeNode, b: Manifesto.TreeNode) => {
+                return (this.getNodeYear(a) - this.getNodeYear(b));
+            });
+        }
+    }
+
+    getYearNode(decadeNode: Manifesto.TreeNode, year: Number): Manifesto.TreeNode{
+        for (var i = 0; i < decadeNode.nodes.length; i++){
+            var n = decadeNode.nodes[i];
+            if (year === this.getNodeYear(n)) return n;
+        }
+
+        return null;
+    }
+
+    createMonthNodes(rootNode: Manifesto.TreeNode, nodes: Manifesto.TreeNode[]): void{
+        var monthNode: Manifesto.TreeNode;
+
+        for (var i = 0; i < nodes.length; i++) {
+            var node: Manifesto.TreeNode = nodes[i];
+            var year = this.getNodeYear(node);
+            var month = this.getNodeMonth(node);
+            var decadeNode = this.getDecadeNode(rootNode, year);
+            var yearNode = this.getYearNode(decadeNode, year);
+
+            if (decadeNode && yearNode && !this.getMonthNode(yearNode, month)){
+                monthNode = manifesto.getTreeNode();
+                monthNode.label = this.getNodeDisplayMonth(node);
+                monthNode.navDate = node.navDate;
+                monthNode.data.year = year;
+                monthNode.data.month = month;
+                yearNode.addNode(monthNode);
+            }
+        }
+    }
+
+    sortMonthNodes(rootNode: Manifesto.TreeNode): void {
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var decadeNode = rootNode.nodes[i];
+
+            for (var j = 0; j < decadeNode.nodes.length; j++){
+                var monthNode = decadeNode.nodes[j];
+
+                monthNode.nodes = monthNode.nodes.sort((a: Manifesto.TreeNode, b: Manifesto.TreeNode) => {
+                    return this.getNodeMonth(a) - this.getNodeMonth(b);
+                });
+            }
+        }
+    }
+
+    getMonthNode(yearNode: Manifesto.TreeNode, month: Number): Manifesto.TreeNode{
+        for (var i = 0; i < yearNode.nodes.length; i++){
+            var n = yearNode.nodes[i];
+            if (month === this.getNodeMonth(n)) return n;
+        }
+
+        return null;
+    }
+
+    createDateNodes(rootNode: Manifesto.TreeNode, nodes: Manifesto.TreeNode[]): void{
+        for (var i = 0; i < nodes.length; i++) {
+            var node: Manifesto.TreeNode = nodes[i];
+            var year = this.getNodeYear(node);
+            var month = this.getNodeMonth(node);
+
+            var dateNode = manifesto.getTreeNode();
+            dateNode.id = node.id;
+            dateNode.label = this.getNodeDisplayDate(node);
+            dateNode.data = node.data;
+            dateNode.data.type = 'manifest';
+            dateNode.data.year = year;
+            dateNode.data.month = month;
+
+            var decadeNode = this.getDecadeNode(rootNode, year);
+
+            if (decadeNode) {
+                var yearNode = this.getYearNode(decadeNode, year);
+
+                if (yearNode){
+                    var monthNode = this.getMonthNode(yearNode, month);
+
+                    if (monthNode){
+                        monthNode.addNode(dateNode);
+                    }
+                }
+            }
+        }
+    }
+
+    getNodeYear(node: Manifesto.TreeNode): number{
+        return node.navDate.getFullYear();
+    }
+
+    getNodeMonth(node: Manifesto.TreeNode): number{
+        return node.navDate.getMonth();
+    }
+
+    getNodeDisplayMonth(node: Manifesto.TreeNode): string{
+        var months: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return months[node.navDate.getMonth()];
+    }
+
+    getNodeDisplayDate(node: Manifesto.TreeNode): string{
+        return node.navDate.toDateString();
     }
 }
 

@@ -1,4 +1,4 @@
-import BaseCommands = require("../../modules/uv-shared-module/Commands");
+import BaseCommands = require("../../modules/uv-shared-module/BaseCommands");
 import BaseExtension = require("../../modules/uv-shared-module/BaseExtension");
 import BaseProvider = require("../../modules/uv-shared-module/BaseProvider");
 import BootStrapper = require("../../Bootstrapper");
@@ -11,7 +11,7 @@ import IPDFProvider = require("./IPDFProvider");
 import IProvider = require("../../modules/uv-shared-module/IProvider");
 import LeftPanel = require("../../modules/uv-shared-module/LeftPanel");
 import MoreInfoRightPanel = require("../../modules/uv-moreinforightpanel-module/MoreInfoRightPanel");
-import Params = require("../../modules/uv-shared-module/Params");
+import Params = require("../../Params");
 import PDFCenterPanel = require("../../modules/uv-pdfcenterpanel-module/PDFCenterPanel");
 import Provider = require("./Provider");
 import RightPanel = require("../../modules/uv-shared-module/RightPanel");
@@ -42,10 +42,8 @@ class Extension extends BaseExtension{
     create(overrideDependencies?: any): void {
         super.create();
 
-        var that = this;
-
-        $.subscribe(BaseCommands.THUMB_SELECTED, (e, index: number) => {
-            this.viewFile(index);
+        $.subscribe(BaseCommands.THUMB_SELECTED, (e, canvasIndex: number) => {
+            this.viewCanvas(canvasIndex);
         });
 
         $.subscribe(BaseCommands.LEFTPANEL_EXPAND_FULL_START, (e) => {
@@ -57,14 +55,6 @@ class Extension extends BaseExtension{
             Shell.$centerPanel.show();
             Shell.$rightPanel.show();
             this.resize();
-        });
-
-        $.subscribe(BaseCommands.DOWNLOAD, (e) => {
-            $.publish(BaseCommands.SHOW_DOWNLOAD_DIALOGUE);
-        });
-
-        $.subscribe(BaseCommands.EMBED, (e) => {
-            $.publish(BaseCommands.SHOW_EMBED_DIALOGUE);
         });
 
         $.subscribe(BaseCommands.SHOW_OVERLAY, (e, params) => {
@@ -89,6 +79,8 @@ class Extension extends BaseExtension{
     }
 
     createModules(): void{
+        super.createModules();
+
         this.headerPanel = new HeaderPanel(Shell.$headerPanel);
 
         if (this.isLeftPanelEnabled()){
@@ -122,19 +114,6 @@ class Extension extends BaseExtension{
         if (this.isRightPanelEnabled()){
             this.rightPanel.init();
         }
-    }
-
-    viewFile(canvasIndex: number): void {
-
-        // if it's a valid canvas index.
-        if (canvasIndex == -1) return;
-
-        this.viewCanvas(canvasIndex, () => {
-            var canvas = this.provider.getCanvasByIndex(canvasIndex);
-            $.publish(BaseCommands.OPEN_MEDIA, [canvas]);
-            this.setParam(Params.canvasIndex, canvasIndex);
-        });
-
     }
 }
 

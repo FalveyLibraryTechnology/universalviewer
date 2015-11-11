@@ -3,9 +3,17 @@
     "label": "Cymraeg"
   },
   "content": {
-    "canvasIndexOutOfRange": "Canfas yn rhy fawr i'w arddangos (ceisiwch eto)"
+    "authCORSError": "Eich porwr yn peidio cefnogi CORS, os gwelwch yn dda uwchraddio i weld y cynnwys hwn.",
+    "canvasIndexOutOfRange": "Canfas yn rhy fawr i'w arddangos (ceisiwch eto)",
+    "degradedResourceMessage": "Os gwelwch yn dda mewngofnodwch i weld yn ansawdd llawn.",
+    "degradedResourceLogin": "Mewngofnodi"
   },
   "modules": {
+    "clickThroughDialogue": {
+      "content": {
+        "viewTerms": "Darllenwch Telerau ac Amodau Llawn"
+      }
+    },
     "dialogue": {
       "content": {
         "close": "Cau"
@@ -59,14 +67,22 @@
         "title": "Cymorth"
       }
     },
+    "loginDialogue": {
+      "content": {
+        "login": "Mewngofnodi"
+      }
+    },
     "moreInfoRightPanel": {
       "content": {
+        "attribution": "priodoliad",
         "collapse": "Cuddio Mwy o Wybodaeth",
         "collapseFull": "Cuddio'r Galeri",
+        "description": "disgrifiad",
         "expand": "Ehangu Fwy o Wybodaeth",
         "expandFull": "Ehangu'r Galeri",
         "holdingText": "Eich modiwl fan hyn!",
         "less": "llai",
+        "license": "trwydded",
         "more": "mwy",
         "noData": "Nid oes data i'w arddangos",
         "title": "Mwy o Wybodaeth"
@@ -79,6 +95,7 @@
         "first": "gyntaf",
         "firstImage": "Delwedd Gyntaf",
         "firstPage": "Tudalen gyntaf",
+        "folio": "ffolio",
         "go": "GWELD",
         "help": "Cymorth",
         "image": "Delwedd",
@@ -100,7 +117,7 @@
     },
     "seadragonCenterPanel": {
       "content": {
-        "acknowledgements": "Cydnabyddiaethau",
+        "acknowledgements": "Priodoliad",
         "goHome": "Gweld y maint gwreiddiol",
         "imageUnavailable": "Nid oes delwedd ar gael",
         "next": "nesaf",
@@ -134,18 +151,22 @@
         "locale": "Iaith",
         "pagingEnabled": "Arddangos dwy dudalen",
         "preserveViewport": "Cadw'r lefel o glosio",
-        "title": "Dewisiadau"
+        "title": "Dewisiadau",
+        "website": "<a href='https://github.com/universalviewer/universalviewer'>mwy o wybodaeth</a>"
       }
     },
     "treeViewLeftPanel": {
       "content": {
         "collapse": "Cuddio'r Cynnwys",
         "collapseFull": "Cuddio'r Galeri",
+        "date": "dyddiad",
         "expand": "Ehangu'r Cynnwys",
         "expandFull": "Ehangu'r Galeri",
         "index": "Mynegai",
+        "sortBy": "trefnu yn ôl",
         "thumbnails": "Bodluniau",
-        "title": "Cynnwys"
+        "title": "Cynnwys",
+        "volume": "cyfaint"
       }
     }
   }

@@ -1,4 +1,4 @@
-import BaseCommands = require("../../modules/uv-shared-module/Commands");
+import BaseCommands = require("../../modules/uv-shared-module/BaseCommands");
 import BaseDownloadDialogue = require("../../modules/uv-dialogues-module/DownloadDialogue");
 import DownloadOption = require("../../modules/uv-shared-module/DownloadOption");
 import ISeadragonExtension = require("./ISeadragonExtension");
@@ -113,17 +113,18 @@ class DownloadDialogue extends BaseDownloadDialogue {
         }
 
         this.resetDynamicDownloadOptions();
-        var currentCanvas = this.provider.getCurrentCanvas();
+        var currentCanvas: Manifesto.ICanvas = this.provider.getCurrentCanvas();
         if (this.isDownloadOptionAvailable(DownloadOption.dynamicImageRenderings)) {
-            for (var i = 0; i < currentCanvas.images.length; i++) {
-                this.addDownloadOptionsForRenderings(currentCanvas.images[i], this.content.entireFileAsOriginal);
+            var images = currentCanvas.getImages();
+            for (var i = 0; i < images.length; i++) {
+                this.addDownloadOptionsForRenderings(images[i].getResource(), this.content.entireFileAsOriginal);
             }
         }
         if (this.isDownloadOptionAvailable(DownloadOption.dynamicCanvasRenderings)) {
             this.addDownloadOptionsForRenderings(currentCanvas, this.content.entireFileAsOriginal);
         }
         if (this.isDownloadOptionAvailable(DownloadOption.dynamicSequenceRenderings)) {
-            this.addDownloadOptionsForRenderings(this.provider.sequence, this.content.entireDocument);
+            this.addDownloadOptionsForRenderings(this.provider.getCurrentSequence(), this.content.entireDocument);
         }
 
         if (!this.$downloadOptions.find('li:visible').length){
@@ -136,9 +137,7 @@ class DownloadDialogue extends BaseDownloadDialogue {
             this.$downloadButton.show();
         }
 
-        var settings: ISettings = this.provider.getSettings();
-
-        if (this.provider.isPagingEnabled() && settings.pagingEnabled) {
+        if (this.provider.isPagingSettingEnabled()) {
             this.$pagingNote.show();
         } else {
             this.$pagingNote.hide();
@@ -154,26 +153,24 @@ class DownloadDialogue extends BaseDownloadDialogue {
         this.$downloadOptions.find('.dynamic').remove();
     }
 
-    addDownloadOptionsForRenderings(resource: any, defaultLabel: string)
+    addDownloadOptionsForRenderings(resource: Manifesto.IManifestResource, defaultLabel: string)
     {
-        var renderings = resource.rendering;
-
-        if (!$.isArray(renderings)){
-            renderings = [renderings];
-        }
+        var renderings: Manifesto.IRendering[] = manifesto.getRenderings(resource);
 
         for (var i = 0; i < renderings.length; i++) {
-            var rendering = renderings[i];
+            var rendering: Manifesto.IRendering = renderings[i];
             if (rendering) {
-                var label = this.provider.getLocalisedValue(rendering['label']);
+                var label = rendering.getLabel();
+                var currentId;
                 if (label) {
+                    currentId = _.camelCase(label);
                     label += " ({0})";
                 } else {
+                    currentId = "dynamic_download_" + ++this.renderingUrlsCount;
                     label = defaultLabel;
                 }
-                label = String.format(label, this.simplifyMimeType(rendering.format));
-                var currentId = "dynamic_download_" + ++this.renderingUrlsCount;
-                this.renderingUrls[currentId] = rendering['@id'];
+                label = String.format(label, this.simplifyMimeType(rendering.getFormat().toString()));
+                this.renderingUrls[currentId] = rendering.id;
                 var newButton = $('<li class="dynamic"><input id="' + currentId + '" type="radio" name="downloadOptions" /><label for="' + currentId + '">' + label + '</label></li>');
                 this.$downloadOptions.append(newButton);
             }
@@ -184,43 +181,40 @@ class DownloadDialogue extends BaseDownloadDialogue {
         return this.$downloadOptions.find("input:checked");
     }
 
-    getOriginalImageForCurrentCanvas() {
-        var canvas = this.provider.getCurrentCanvas();
-        if (canvas['images'][0]['resource']['@id']) {
-            return canvas['images'][0]['resource']['@id'];
+    getCurrentCanvasImageResource() {
+        var images = this.provider.getCurrentCanvas().getImages();
+        if (images[0]) {
+            return images[0].getResource();
         }
-        return false;
+        return null;
+    }
+
+    getOriginalImageForCurrentCanvas() {
+        var resource = this.getCurrentCanvasImageResource();
+        return resource ? resource.id : null;
     }
 
     getMimeTypeForCurrentCanvas() {
-        var canvas = this.provider.getCurrentCanvas();
-        if (canvas['images'][0]['resource']['format']) {
-            return canvas['images'][0]['resource']['format'];
-        }
-        return false;
+        var resource = this.getCurrentCanvasImageResource();
+        return resource ? resource.getFormat().toString() : null;
     }
 
     getDimensionsForCurrentCanvas() {
-        var canvas = this.provider.getCurrentCanvas();
-        if (canvas['images'][0]['resource']['width'] && canvas['images'][0]['resource']['height']) {
-            return [canvas['images'][0]['resource']['width'], canvas['images'][0]['resource']['height']];
-        }
-        return [0, 0];
+        var resource = this.getCurrentCanvasImageResource();
+        return resource ? [resource.getWidth(), resource.getHeight()] : [0, 0];
     }
 
     isDownloadOptionAvailable(option: DownloadOption): boolean {
-        var settings: ISettings = this.provider.getSettings();
-
         switch (option){
             case DownloadOption.currentViewAsJpg:
             case DownloadOption.dynamicCanvasRenderings:
             case DownloadOption.dynamicImageRenderings:
             case DownloadOption.wholeImageHighRes:
-                return settings.pagingEnabled ? false : true;
+                return this.provider.isPagingSettingEnabled() ? false : true;
             case DownloadOption.wholeImageLowResAsJpg:
                 // hide low-res option if hi-res width is smaller than constraint
                 var dimensions = this.getDimensionsForCurrentCanvas();
-                return (!settings.pagingEnabled && (dimensions[0] > this.options.confinedImageSize))
+                return (!this.provider.isPagingSettingEnabled() && (dimensions[0] > this.options.confinedImageSize))
             default:
                 return true;
         }

@@ -1,81 +1,62 @@
 import BootstrapParams = require("../../BootstrapParams");
 import BootStrapper = require("../../Bootstrapper");
-import CanvasType = require("./CanvasType");
-import IAccessToken = require("./IAccessToken");
-import RenderingFormat = require("./RenderingFormat");
-import Resource = require("./Resource");
-import ServiceProfile = require("./ServiceProfile");
-import Thumb = require("./Thumb");
-import TreeNode = require("./TreeNode");
+import ExternalResource = require("./ExternalResource");
 
 // the provider contains all methods related to
 // interacting with the IIIF data model.
 interface IProvider{
     canvasIndex: number;
-    manifest: any;
-    sequence: any;
+    collectionIndex: number;
+    iiifResource: Manifesto.IIIIFResource;
+    manifest: Manifesto.IIIIFResource;
+    manifestIndex: number;
+    manifestUri: string;
+    resources: Manifesto.IExternalResource[];
     sequenceIndex: number;
-    treeRoot: TreeNode;
 
     addTimestamp(uri: string): string;
     getAttribution(): string;
+    getCanvasByIndex(index: number): any;
+    getCanvasIndexById(id: string): number;
+    getCanvasIndexByLabel(label: string): number;
+    getCanvasIndexParam(): number;
+    getCanvasRange(canvas: Manifesto.ICanvas): Manifesto.IRange;
+    getCanvasType(canvas?: Manifesto.ICanvas): Manifesto.CanvasType;
+    getCollectionIndex(iiifResource: Manifesto.IIIIFResource): number;
+    getCurrentCanvas(): Manifesto.ICanvas;
+    getCurrentSequence(): Manifesto.ISequence;
+    getFirstPageIndex(): number;
+    getInfoUri(canvas: Manifesto.ICanvas): string;
+    getLastCanvasLabel(alphanumeric?: boolean): string;
+    getLastPageIndex(): number;
     getLicense(): string;
     getLogo(): string;
-    getCanvasByIndex(index): any;
-    getCanvasIndexByLabel(label: string): number;
-    getCanvasIndexById(id: string): number;
-    getCanvasStructure(canvas: any): any;
-    getCanvasType(canvas?: any): string;
-    getCurrentCanvas(): any;
-    getLocalisedValue(property: any): string;
-    getManifestSeeAlsoUri(manifest: any): string;
-    getManifestType(): string;
-    getMetaData(callback: (data: any) => any): void;
-    getRendering(resource: any, format: RenderingFormat): any
-    getRenderings(element: any): any[];
+    getManifestType(): Manifesto.ManifestType;
+    getMetadata(): any;
+    getNextPageIndex(index?: number): number;
+    getPagedIndices(index?: number): number[];
+    getPrevPageIndex(index?: number): number;
+    getRangeByPath(path: string): Manifesto.IRange;
     getSeeAlso(): any;
-    getSequenceType(): string;
-    getService(resource: any, profile: ServiceProfile): any;
-    getStructureByPath(path: string): any;
-    getThumbs(width: number, height: number): Thumb[];
-    getThumbUri(canvas: any, width: number, height: number): string;
+    getSequenceIndexParam(): number;
+    getStartCanvasIndex(): number;
+    getThumbs(width: number, height: number): Manifesto.Thumb[];
     getTitle(): string;
     getTotalCanvases(): number;
-    getTree(): TreeNode;
-    getPagedIndices(canvasIndex?: number): number[];
-    getFirstPageIndex(): number;
-    getLastPageIndex(): number;
-    getPrevPageIndex(canvasIndex?: number): number;
-    getNextPageIndex(canvasIndex?: number): number;
-    getStartCanvasIndex(): number;
-    getViewingDirection(): string;
-    isCanvasIndexOutOfRange(canvasIndex: number): boolean;
-    isFirstCanvas(canvasIndex?: number): boolean;
-    isLastCanvas(canvasIndex?: number): boolean;
-    isPagingEnabled(): boolean;
-    isPagingSettingEnabled(): boolean;
+    getTree(): Manifesto.TreeNode;
+    getViewingDirection(): Manifesto.ViewingDirection;
+    isCanvasIndexOutOfRange(index: number): boolean;
+    isFirstCanvas(index?: number): boolean;
+    isLastCanvas(index?: number): boolean;
     isMultiCanvas(): boolean;
     isMultiSequence(): boolean;
+    isPagingAvailable(): boolean;
+    isPagingEnabled(): boolean;
+    isPagingSettingEnabled(): boolean;
     isSeeAlsoEnabled(): boolean;
     isTotalCanvasesEven(): boolean;
-    load(): void;
-    loadResource(resource: Resource,
-                 login: (loginService: string) => Promise<void>,
-                 getAccessToken: (tokenServiceUrl: string) => Promise<IAccessToken>,
-                 storeAccessToken: (resource: Resource, token: IAccessToken) => Promise<void>,
-                 getStoredAccessToken: (tokenService: string) => Promise<IAccessToken>,
-                 handleResourceResponse: (resource: Resource) => Promise<any>): Promise<Resource>;
-    loadResources(resources: Resource[],
-                  login: (loginService: string) => Promise<void>,
-                  getAccessToken: (tokenServiceUrl: string) => Promise<IAccessToken>,
-                  storeAccessToken: (resource: Resource, token: IAccessToken) => Promise<void>,
-                  getStoredAccessToken: (tokenService: string) => Promise<IAccessToken>,
-                  handleResourceResponse: (resource: Resource) => Promise<any>): Promise<Resource[]>;
-    parseManifest(): void;
-    parseStructure(): void;
-    sanitize(html: string): string;
 
-    // todo: move these to extension
+    // todo: move these to baseextension?
     bootstrapper: BootStrapper;
     config: any;
     domain: string;
@@ -97,8 +78,8 @@ interface IProvider{
     getSerializedLocales(): string;
     getSettings(): ISettings;
     isDeepLinkingEnabled(): boolean;
-    paramMap: string[];
     reload(params?: BootstrapParams);
+    sanitize(html: string): string;
     serializeLocales(locales: any[]): string;
     updateSettings(settings: ISettings): void;
 }

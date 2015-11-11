@@ -1,10 +1,11 @@
-import BaseCommands = require("../uv-shared-module/Commands");
+import BaseCommands = require("../uv-shared-module/BaseCommands");
 import BaseProvider = require("../uv-shared-module/BaseProvider");
 import Commands = require("../../extensions/uv-seadragon-extension/Commands");
 import CenterPanel = require("../uv-shared-module/CenterPanel");
+import ISeadragonExtension = require("../../extensions/uv-seadragon-extension/ISeadragonExtension");
 import ISeadragonProvider = require("../../extensions/uv-seadragon-extension/ISeadragonProvider");
-import Resource = require("../../modules/uv-shared-module/Resource");
-import Params = require("../uv-shared-module/Params");
+import ExternalResource = require("../../modules/uv-shared-module/ExternalResource");
+import Params = require("../../Params");
 import SearchResult = require("../../extensions/uv-seadragon-extension/SearchResult");
 import SearchResultRect = require("../../extensions/uv-seadragon-extension/SearchResultRect");
 
@@ -18,7 +19,7 @@ class SeadragonCenterPanel extends CenterPanel {
     isCreated: boolean = false;
     isFirstLoad: boolean = true;
     nextButtonEnabled: boolean = false;
-    pages: Resource[];
+    pages: Manifesto.IExternalResource[];
     prevButtonEnabled: boolean = false;
     title: string;
     userData: any;
@@ -48,23 +49,18 @@ class SeadragonCenterPanel extends CenterPanel {
         this.$viewer = $('<div id="viewer"></div>');
         this.$content.append(this.$viewer);
 
-        $.subscribe(BaseCommands.OPEN_MEDIA, () => {
-            this.tryLoad();
+        $.subscribe(BaseCommands.OPEN_EXTERNAL_RESOURCE, (e, resources: Manifesto.IExternalResource[]) => {
+            // todo: OPEN_EXTERNAL_RESOURCE should be able to waitFor RESIZE
+            // https://facebook.github.io/flux/docs/dispatcher.html
+            if (!this.isCreated) {
+                setTimeout(() => {
+                    this.createUI();
+                    this.openMedia(resources);
+                }, 500); // hack to allow time for panel open animations to complete.
+            } else {
+                this.openMedia(resources);
+            }
         });
-    }
-
-    // delay viewer creation to ensure it happens after initial resize
-    // todo: implement a listener for an onResized event
-    tryLoad(): void {
-        //console.log("try load");
-        if (!this.isCreated) {
-            setTimeout(() => {
-                this.createUI();
-                this.loadPages();
-            }, 500); // allow time for panel open animations to complete.
-        } else {
-            this.loadPages();
-        }
     }
 
     createUI(): void {
@@ -101,14 +97,21 @@ class SeadragonCenterPanel extends CenterPanel {
             id: "viewer",
             ajaxWithCredentials: false,
             showNavigationControl: true,
-            showNavigator: true,
+            showNavigator: this.config.options.showNavigator == null ? true : this.config.options.showNavigator,
             showRotationControl: true,
             showHomeControl: true,
             showFullPageControl: false,
             defaultZoomLevel: this.config.options.defaultZoomLevel || 0,
-            controlsFadeDelay: this.config.options.controlsFadeDelay,
-            controlsFadeLength: this.config.options.controlsFadeLength,
-            navigatorPosition: this.config.options.navigatorPosition,
+            controlsFadeDelay: this.config.options.controlsFadeDelay || 250,
+            controlsFadeLength: this.config.options.controlsFadeLength || 250,
+            navigatorPosition: this.config.options.navigatorPosition || "BOTTOM_RIGHT",
+            animationTime: this.config.options.animationTime || 1.2,
+            visibilityRatio: this.config.options.visibilityRatio || 0.5,
+            constrainDuringPan: this.config.options.constrainDuringPan || false,
+            immediateRender: this.config.options.immediateRender || false,
+            maxZoomLevel: this.config.options.maxZoomLevel || null,
+            blendTime: this.config.options.blendTime || 0,
+            autoHideControls: this.config.options.autoHideControls == null ? true : this.config.options.autoHideControls,
             prefixUrl: prefixUrl,
             navImages: {
                 zoomIn: {
@@ -289,23 +292,25 @@ class SeadragonCenterPanel extends CenterPanel {
         });
     }
 
-    loadPages(): void {
+    openMedia(resources?: Manifesto.IExternalResource[]): void {
 
         this.$spinner.show();
 
-        this.extension.getImages().then((images: any) => {
-            this.viewer.open(images);
+        this.extension.getExternalResources(resources).then((resources: Manifesto.IExternalResource[]) => {
+            // OSD can open an array info.json objects
+            this.viewer.open(resources);
         });
     }
 
     positionPages() {
-        var viewingDirection = this.provider.getViewingDirection();
+
+        var viewingDirection = this.provider.getViewingDirection().toString();
 
         // if there's more than one image, align them next to each other.
-        if (this.provider.images.length > 1) {
+        if ((<ISeadragonProvider>this.provider).resources.length > 1) {
 
             // check if tilesources should be aligned horizontally or vertically
-            if (viewingDirection === "top-to-bottom" || viewingDirection === "bottom-to-top") {
+            if (viewingDirection === manifesto.ViewingDirection.topToBottom().toString() || viewingDirection === manifesto.ViewingDirection.bottomToTop().toString()) {
                 // vertical
                 var topPage = this.viewer.world.getItemAt(0);
                 var topPageBounds = topPage.getBounds(true);
@@ -352,7 +357,7 @@ class SeadragonCenterPanel extends CenterPanel {
             var settings: ISettings = this.provider.getSettings();
 
             // zoom to bounds unless setting disabled
-            if (settings.preserveViewport){
+            if (settings.preserveViewport && this.currentBounds){
                 this.fitToBounds(this.currentBounds);
             } else {
                 this.goHome();
@@ -423,15 +428,15 @@ class SeadragonCenterPanel extends CenterPanel {
     }
 
     goHome(): void {
-        var viewingDirection = this.provider.getViewingDirection();
+        var viewingDirection = this.provider.getViewingDirection().toString();
 
-        switch (viewingDirection){
-            case "top-to-bottom" :
-                this.viewer.viewport.fitBounds(new OpenSeadragon.Rect(0, 0, 1, this.viewer.world.getItemAt(0).normHeight * this.provider.images.length), true);
+        switch (viewingDirection.toString()){
+            case manifesto.ViewingDirection.topToBottom().toString() :
+                this.viewer.viewport.fitBounds(new OpenSeadragon.Rect(0, 0, 1, this.viewer.world.getItemAt(0).normHeight * (<ISeadragonProvider>this.provider).resources.length), true);
                 break;
-            case "left-to-right" :
-            case "right-to-left" :
-                this.viewer.viewport.fitBounds(new OpenSeadragon.Rect(0, 0, this.provider.images.length, this.viewer.world.getItemAt(0).normHeight), true);
+            case manifesto.ViewingDirection.leftToRight().toString():
+            case manifesto.ViewingDirection.rightToLeft().toString() :
+                this.viewer.viewport.fitBounds(new OpenSeadragon.Rect(0, 0, (<ISeadragonProvider>this.provider).resources.length, this.viewer.world.getItemAt(0).normHeight), true);
                 break;
         }
     }
@@ -511,7 +516,7 @@ class SeadragonCenterPanel extends CenterPanel {
 
     overlaySearchResults(): void {
 
-        var searchResults = this.provider.searchResults;
+        var searchResults = (<ISeadragonProvider>this.provider).searchResults;
 
         if (!searchResults.length) return;
 
@@ -520,18 +525,18 @@ class SeadragonCenterPanel extends CenterPanel {
         for (var i = 0; i < indices.length; i++){
             var canvasIndex = indices[i];
 
-            var searchResult: SearchResult = null;
+            var searchHit: SearchResult = null;
 
             for (var j = 0; j < searchResults.length; j++) {
                 if (searchResults[j].canvasIndex === canvasIndex) {
-                    searchResult = searchResults[j];
+                    searchHit = searchResults[j];
                     break;
                 }
             }
 
-            if (!searchResult) continue;
+            if (!searchHit) continue;
 
-            var rects = this.getSearchOverlayRects(searchResult.rects, i);
+            var rects = this.getSearchOverlayRects(searchHit.rects, i);
 
             for (var k = 0; k < rects.length; k++) {
                 var rect = rects[k];
@@ -599,6 +604,13 @@ class SeadragonCenterPanel extends CenterPanel {
         if (this.$rights && this.$rights.is(':visible')){
             this.$rights.css('top', this.$content.height() - this.$rights.outerHeight() - this.$rights.verticalMargins());
         }
+    }
+
+    setFocus(): void {
+        var $canvas = $(this.viewer.canvas);
+
+        if (!$canvas.is(":focus"))
+            $canvas.focus();
     }
 }
 export = SeadragonCenterPanel;

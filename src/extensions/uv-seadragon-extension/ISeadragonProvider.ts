@@ -1,24 +1,20 @@
-import IAccessToken = require("../../modules/uv-shared-module/IAccessToken");
+import ExternalResource = require("../../modules/uv-shared-module/ExternalResource");
 import IProvider = require("../../modules/uv-shared-module/IProvider");
-import Resource = require("../../modules/uv-shared-module/Resource");
 import SearchResult = require("./SearchResult");
+import TreeSortType = require("./TreeSortType");
 
 interface ISeadragonProvider extends IProvider{
-    getAutoCompleteService(): string;
+    getAutoCompleteService(): Manifesto.IService;
     getAutoCompleteUri(): string;
-    getConfinedImageUri(canvas: any, width: number, height?: number): string;
-    getCroppedImageUri(asset: any, viewer: any, download?: boolean, relativeUri?: boolean): string;
-    getEmbedScript(canvasIndex: number, zoom: string, width: number, height: number, rotation: number, embedTemplate: string): string;
-    getImages(login: (loginService: string) => Promise<void>,
-              getAccessToken: (tokenServiceUrl: string) => Promise<IAccessToken>,
-              storeAccessToken: (resource: Resource, token: IAccessToken) => Promise<void>,
-              getStoredAccessToken: (tokenService: string) => Promise<IAccessToken>,
-              handleResourceResponse: (resource: Resource) => Promise<any>): Promise<Resource[]>;
-    getImageUri(canvas: any): string;
-    getSearchResultByCanvasIndex(canvasIndex: number): SearchResult;
-    getSearchWithinService(): string;
+    getConfinedImageUri(canvas: Manifesto.ICanvas, width: number, height?: number): string;
+    getCroppedImageUri(canvas: Manifesto.ICanvas, viewer: any, download?: boolean, relativeUri?: boolean): string;
+    getEmbedScript(template: string, width: number, height: number, zoom: string, rotation: number): string;
+    getImageBaseUri(canvas: Manifesto.ICanvas): string;
+    getImageId(canvas: Manifesto.ICanvas): string;
+    getSearchResultByCanvasIndex(index: number): SearchResult;
+    getSearchWithinService(): Manifesto.IService;
     getSearchWithinServiceUri(): string;
-    images: Resource[];
+    getSortedTree(sortType: TreeSortType): Manifesto.TreeNode;
     isSearchWithinEnabled(): boolean;
     parseSearchWithinResults(results: any);
     searchResults: SearchResult[];

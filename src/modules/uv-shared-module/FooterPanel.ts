@@ -1,4 +1,4 @@
-import BaseCommands = require("./Commands");
+import BaseCommands = require("./BaseCommands");
 import BaseView = require("./BaseView");
 
 class FooterPanel extends BaseView {
@@ -40,13 +40,13 @@ class FooterPanel extends BaseView {
         this.$fullScreenBtn.attr('tabindex', '5');
 
         this.$embedButton.onPressed(() => {
-            $.publish(BaseCommands.EMBED);
+            $.publish(BaseCommands.SHOW_EMBED_DIALOGUE);
         });
 
         this.$downloadButton.on('click', (e) => {
             e.preventDefault();
 
-            $.publish(BaseCommands.DOWNLOAD);
+            $.publish(BaseCommands.SHOW_DOWNLOAD_DIALOGUE);
         });
 
         this.$fullScreenBtn.on('click', (e) => {
@@ -75,7 +75,7 @@ class FooterPanel extends BaseView {
             this.$fullScreenBtn.addClass('lightbox');
         }
 
-        if (this.bootstrapper.isFullScreen) {
+        if (this.extension.isFullScreen()) {
             this.$fullScreenBtn.swapClass('fullScreen', 'exitFullscreen');
             this.$fullScreenBtn.text(this.content.exitFullScreen);
             this.$fullScreenBtn.attr('title', this.content.exitFullScreen);

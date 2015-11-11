@@ -1405,6 +1405,11 @@ declare module Utils {
     }
 }
 declare module Utils {
+    class Documents {
+        static IsInIFrame(): boolean;
+    }
+}
+declare module Utils {
     class Events {
         static Debounce(fn: any, debounceDuration: number): () => any;
     }
@@ -1444,6 +1449,7 @@ declare module Utils.Measurements {
     }
     class Dimensions {
         static FitRect(width1: number, height1: number, width2: number, height2: number): Size;
+        static HitRect(x: number, y: number, w: number, h: number, mx: number, my: number): boolean;
     }
 }
 declare module Utils {
@@ -1452,9 +1458,6 @@ declare module Utils {
     }
 }
 declare module Utils {
-    class Objects {
-        static ConvertToPlainObject(obj: any): any;
-    }
 }
 declare module Utils {
     class Strings {

@@ -1,26 +1,32 @@
-import BaseCommands = require("../uv-shared-module/Commands");
+import BaseCommands = require("../uv-shared-module/BaseCommands");
 import Commands = require("../../extensions/uv-seadragon-extension/Commands");
 import GalleryView = require("./GalleryView");
 import IProvider = require("../uv-shared-module/IProvider");
+import ISeadragonProvider = require("../../extensions/uv-seadragon-extension/ISeadragonProvider");
 import LeftPanel = require("../uv-shared-module/LeftPanel");
 import ThumbsView = require("./ThumbsView");
-import TreeNode = require("../uv-shared-module/TreeNode");
+import TreeSortType = require("../../extensions/uv-seadragon-extension/TreeSortType");
 import TreeView = require("./TreeView");
 
 class TreeViewLeftPanel extends LeftPanel {
 
+    $buttonGroup: JQuery;
     $galleryView: JQuery;
     $options: JQuery;
+    $sortByDateButton: JQuery;
+    $sortByLabel: JQuery;
+    $sortByVolumeButton: JQuery;
     $tabs: JQuery;
     $tabsContent: JQuery;
     $thumbsButton: JQuery;
     $thumbsView: JQuery;
     $treeButton: JQuery;
     $treeView: JQuery;
+    $treeViewOptions: JQuery;
     $views: JQuery;
     galleryView: GalleryView;
     thumbsView: ThumbsView;
-    treeData: TreeNode;
+    treeData: Manifesto.TreeNode;
     treeView: TreeView;
 
     constructor($element: JQuery) {
@@ -47,6 +53,8 @@ class TreeViewLeftPanel extends LeftPanel {
             if (this.isFullyExpanded){
                 this.collapseFull();
             }
+
+            this.selectCurrentTreeNode();
         });
 
         this.$tabs = $('<div class="tabs"></div>');
@@ -66,6 +74,21 @@ class TreeViewLeftPanel extends LeftPanel {
         this.$options = $('<div class="options"></div>');
         this.$tabsContent.append(this.$options);
 
+        this.$treeViewOptions = $('<div class="treeView"></div>');
+        this.$options.append(this.$treeViewOptions);
+
+        this.$sortByLabel = $('<span class="sort">' + this.content.sortBy + '</span>');
+        this.$treeViewOptions.append(this.$sortByLabel);
+
+        this.$buttonGroup = $('<div class="btn-group"></div>');
+        this.$treeViewOptions.append(this.$buttonGroup);
+
+        this.$sortByDateButton = $('<button class="btn">' + this.content.date + '</button>');
+        this.$buttonGroup.append(this.$sortByDateButton);
+
+        this.$sortByVolumeButton = $('<button class="btn">' + this.content.volume + '</button>');
+        this.$buttonGroup.append(this.$sortByVolumeButton);
+
         this.$views = $('<div class="views"></div>');
         this.$tabsContent.append(this.$views);
 
@@ -77,6 +100,16 @@ class TreeViewLeftPanel extends LeftPanel {
 
         this.$galleryView = $('<div class="galleryView"></div>');
         this.$views.append(this.$galleryView);
+
+        this.$sortByDateButton.on('click', () => {
+            this.sortByDate();
+        });
+
+        this.$sortByVolumeButton.on('click', () => {
+            this.sortByVolume();
+        });
+
+        this.$treeViewOptions.hide();
 
         this.$treeButton.onPressed(() => {
             this.openTreeView();
@@ -96,12 +129,45 @@ class TreeViewLeftPanel extends LeftPanel {
 
         this.$title.text(this.content.title);
         this.$closedTitle.text(this.content.title);
+
+        this.$sortByVolumeButton.addClass('on');
     }
 
     createTreeView(): void {
         this.treeView = new TreeView(this.$treeView);
         this.treeView.elideCount = this.config.options.elideCount;
         this.dataBindTreeView();
+        this.updateTreeViewOptions();
+    }
+
+    updateTreeViewOptions(): void{
+        if (this.isCollection() && this.treeData.nodes.length && !isNaN(this.treeData.nodes[0].navDate.getTime())){
+            this.$treeViewOptions.show();
+        } else {
+            this.$treeViewOptions.hide();
+        }
+    }
+
+    sortByDate(): void {
+        this.treeView.rootNode = (<ISeadragonProvider>this.provider).getSortedTree(TreeSortType.date);
+        this.treeView.dataBind();
+        this.selectCurrentTreeNode();
+        this.$sortByDateButton.addClass('on');
+        this.$sortByVolumeButton.removeClass('on');
+        this.resize();
+    }
+
+    sortByVolume(): void {
+        this.treeView.rootNode = (<ISeadragonProvider>this.provider).getSortedTree(TreeSortType.none);
+        this.treeView.dataBind();
+        this.selectCurrentTreeNode();
+        this.$sortByDateButton.removeClass('on');
+        this.$sortByVolumeButton.addClass('on');
+        this.resize();
+    }
+
+    isCollection(): boolean {
+        return this.treeData.data.type === manifesto.TreeNodeType.collection().toString();
     }
 
     dataBindTreeView(): void{
@@ -118,9 +184,10 @@ class TreeViewLeftPanel extends LeftPanel {
     dataBindThumbsView(): void{
         if (!this.thumbsView) return;
         var width, height;
-        var viewingDirection = this.provider.getViewingDirection();
 
-        if (viewingDirection === "top-to-bottom" || viewingDirection === "bottom-to-top"){
+        var viewingDirection = this.provider.getViewingDirection().toString();
+
+        if (viewingDirection === manifesto.ViewingDirection.topToBottom().toString() || viewingDirection === manifesto.ViewingDirection.bottomToTop().toString()){
             width = this.config.options.oneColThumbWidth;
             height = this.config.options.oneColThumbHeight;
         } else {
@@ -153,9 +220,11 @@ class TreeViewLeftPanel extends LeftPanel {
             var treeEnabled = Utils.Bools.GetBool(this.config.options.treeEnabled, true);
             var thumbsEnabled = Utils.Bools.GetBool(this.config.options.thumbsEnabled, true);
 
-            this.treeData = this.provider.getTree();
+            this.treeData = (typeof (<ISeadragonProvider>this.provider).getSortedTree === 'function')
+                ? (<ISeadragonProvider>this.provider).getSortedTree(TreeSortType.none)
+                : null;
 
-            if (!this.treeData.nodes.length) {
+            if (!this.treeData || !this.treeData.nodes.length) {
                 treeEnabled = false;
             }
 
@@ -225,13 +294,17 @@ class TreeViewLeftPanel extends LeftPanel {
         this.treeView.show();
 
         setTimeout(() => {
-            var structure = this.provider.getStructureByCanvasIndex(this.provider.canvasIndex);
-            if (this.treeView && structure && structure.treeNode) this.treeView.selectNode(structure.treeNode);
+            var range: Manifesto.IRange = this.provider.getCanvasRange(this.provider.getCurrentCanvas());
+            if (this.treeView && range && range.treeNode) this.treeView.selectNode(range.treeNode);
         }, 1);
 
         if (this.thumbsView) this.thumbsView.hide();
         if (this.galleryView) this.galleryView.hide();
 
+        this.updateTreeViewOptions();
+        this.selectCurrentTreeNode();
+
+        this.resize();
         this.treeView.resize();
     }
 
@@ -249,6 +322,10 @@ class TreeViewLeftPanel extends LeftPanel {
 
         if (this.treeView) this.treeView.hide();
 
+        this.$treeViewOptions.hide();
+
+        this.resize();
+
         if (this.isFullyExpanded){
             this.thumbsView.hide();
             if (this.galleryView) this.galleryView.show();
@@ -257,6 +334,32 @@ class TreeViewLeftPanel extends LeftPanel {
             if (this.galleryView) this.galleryView.hide();
             this.thumbsView.show();
             this.thumbsView.resize();
+        }
+    }
+
+    selectCurrentTreeNode(): void{
+        if (this.treeView) {
+
+            var id: string;
+            var node: Manifesto.TreeNode;
+
+            // try finding a range first
+            var range: Manifesto.IRange = this.provider.getCanvasRange(this.provider.getCurrentCanvas());
+
+            if (range){
+                id = range.treeNode.id;
+                node = this.treeView.getNodeById(id);
+            }
+
+            // use manifest root node
+            if (!node){
+                id = this.provider.manifest.treeRoot.id;
+                node = this.treeView.getNodeById(id);
+            }
+
+            if (node){
+                this.treeView.selectNode(node);
+            }
         }
     }
 

@@ -9,7 +9,8 @@
     "preserveViewport": false,
     "rightPanelEnabled": true,
     "searchWithinEnabled": true,
-    "theme": "uv-en-GB-theme"
+    "theme": "uv-en-GB-theme",
+    "useArrowKeysToNavigate": true
   },
   "modules":
   {
@@ -26,7 +27,7 @@
     {
       "options":
       {
-        "embedTemplate": "<div class=\"uv\" data-locale=\"{0}\" data-config=\"{1}\" data-uri=\"{2}\" data-sequenceindex=\"{3}\" data-canvasindex=\"{4}\" data-zoom=\"{5}\" data-rotation=\"{6}\" style=\"width:{7}px; height:{8}px; background-color: #000\"></div>\n<script type=\"text/javascript\" id=\"embedUV\" src=\"{9}\"></script><script type=\"text/javascript\">/* wordpress fix */</script>"
+        "embedTemplate": "<div class=\"uv\" data-locale=\"{0}\" data-config=\"{1}\" data-uri=\"{2}\" data-collectionindex=\"{3}\" data-manifestindex=\"{4}\" data-sequenceindex=\"{5}\" data-canvasindex=\"{6}\" data-zoom=\"{7}\" data-rotation=\"{8}\" style=\"width:{9}px; height:{10}px; background-color: #000\"></div>\n<script type=\"text/javascript\" id=\"embedUV\" src=\"{11}\"></script><script type=\"text/javascript\">/* wordpress fix */</script>"
       }
     },
     "footerPanel":
@@ -75,7 +76,15 @@
         "defaultZoomLevel": 0,
         "navigatorPosition": "BOTTOM_RIGHT",
         "pageGap": 0.01,
-        "trimAttributionCount": 150
+        "trimAttributionCount": 150,
+        "showNavigator": true,
+        "animationTime": 1.2,
+        "visibilityRatio": 0.5,
+        "constrainDuringPan": false,
+        "immediateRender": false,
+        "maxZoomLevel": null,
+        "blendTime": 0,
+        "autoHideControls": true
       }
     },
     "searchFooterPanel":

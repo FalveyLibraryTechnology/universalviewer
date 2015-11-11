@@ -1,4 +1,4 @@
-import BaseCommands = require("../uv-shared-module/Commands");
+import BaseCommands = require("../uv-shared-module/BaseCommands");
 import Commands = require("../../extensions/uv-seadragon-extension/Commands");
 import HeaderPanel = require("../uv-shared-module/HeaderPanel");
 import HelpDialogue = require("../uv-dialogues-module/HelpDialogue");
@@ -42,8 +42,8 @@ class PagingHeaderPanel extends HeaderPanel {
             this.canvasIndexChanged(canvasIndex);
         });
 
-        $.subscribe(BaseCommands.SETTINGS_CHANGED, (e, mode) => {
-            this.modeChanged(mode);
+        $.subscribe(BaseCommands.SETTINGS_CHANGED, (e) => {
+            this.modeChanged();
         });
 
         $.subscribe(BaseCommands.CANVAS_INDEX_CHANGE_FAILED, (e) => {
@@ -67,7 +67,7 @@ class PagingHeaderPanel extends HeaderPanel {
         this.$imageModeOption = $('<input type="radio" id="image" name="mode" tabindex="17"/>');
         this.$modeOptions.append(this.$imageModeOption);
 
-        this.$pageModeLabel = $('<label for="page">' + this.content.page + '</label>');
+        this.$pageModeLabel = $('<label for="page"></label>');
         this.$modeOptions.append(this.$pageModeLabel);
         this.$pageModeOption = $('<input type="radio" id="page" name="mode" tabindex="18"/>');
         this.$modeOptions.append(this.$pageModeOption);
@@ -104,12 +104,18 @@ class PagingHeaderPanel extends HeaderPanel {
             this.$pageModeLabel.addClass('disabled');
         }
 
+        if (this.provider.getManifestType().toString() === manifesto.ManifestType.manuscript().toString()){
+            this.$pageModeLabel.text(this.content.folio);
+        } else {
+            this.$pageModeLabel.text(this.content.page);
+        }
+
         this.setTitles();
 
         this.setTotal();
 
         // check if the book has more than one page, otherwise hide prev/next options.
-        if (this.provider.getTotalCanvases() == 1) {
+        if (this.provider.getTotalCanvases() === 1) {
             this.$centerOptions.hide();
         }
 
@@ -150,8 +156,8 @@ class PagingHeaderPanel extends HeaderPanel {
             this.search();
         });
 
-        this.$searchText.focus(function() {
-            $(this).select()
+        this.$searchText.click(function() {
+            $(this).select();
         });
 
         this.$searchButton.onPressed(() => {
@@ -189,7 +195,7 @@ class PagingHeaderPanel extends HeaderPanel {
     }
 
     isPageModeEnabled(): boolean {
-        return this.config.options.pageModeEnabled && this.extension.getMode().toString() === Mode.page.toString();
+        return this.config.options.pageModeEnabled && (<ISeadragonExtension>this.extension).getMode().toString() === Mode.page.toString();
     }
 
     setTitles(): void {
@@ -214,7 +220,7 @@ class PagingHeaderPanel extends HeaderPanel {
         var of = this.content.of;
 
         if (this.isPageModeEnabled()) {
-            this.$total.html(String.format(of, this.provider.getLastCanvasLabel()));
+            this.$total.html(String.format(of, this.provider.getLastCanvasLabel(true)));
         } else {
             this.$total.html(String.format(of, this.provider.getTotalCanvases()));
         }
@@ -226,7 +232,7 @@ class PagingHeaderPanel extends HeaderPanel {
 
         if (this.isPageModeEnabled()) {
 
-            var orderLabel = this.provider.getLocalisedValue(canvas.label);
+            var orderLabel = canvas.getLabel();
 
             if (orderLabel === "-") {
                 this.$searchText.val("");
@@ -245,7 +251,7 @@ class PagingHeaderPanel extends HeaderPanel {
 
         if (!value) {
 
-            this.extension.showDialogue(this.content.emptyValue);
+            this.extension.showMessage(this.content.emptyValue);
             $.publish(BaseCommands.CANVAS_INDEX_CHANGE_FAILED);
 
             return;
@@ -336,7 +342,7 @@ class PagingHeaderPanel extends HeaderPanel {
         this.$nextButton.enable();
     }
 
-    modeChanged(mode): void {
+    modeChanged(): void {
         this.setSearchFieldValue(this.provider.canvasIndex);
         this.setTitles();
         this.setTotal();

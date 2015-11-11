@@ -1,6 +1,10 @@
-{
+  {
   "localisation": {
     "label": "English (GB)"
+  },
+  "content": {
+    "degradedResourceMessage": "Please log in to view at full quality.",
+    "degradedResourceLogin": "log in"
   },
   "modules": {
     "dialogue": {
@@ -51,13 +55,23 @@
         "title": "Help"
       }
     },
+    "loginDialogue": {
+      "content": {
+        "login": "Login"
+      }
+    },
     "moreInfoRightPanel": {
       "content": {
+        "attribution": "Attribution",
         "collapse": "Collapse More Information",
         "collapseFull": "Collapse Gallery",
+        "description": "Description",
         "expand": "Expand More Information",
         "expandFull": "Expand Gallery",
         "holdingText": "Your module goes here!",
+        "less": "less",
+        "license": "License",
+        "more": "more",
         "noData": "No data to display",
         "title": "More Information"
       }

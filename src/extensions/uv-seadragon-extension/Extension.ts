@@ -1,4 +1,4 @@
-import BaseCommands = require("../../modules/uv-shared-module/Commands");
+import BaseCommands = require("../../modules/uv-shared-module/BaseCommands");
 import BaseExtension = require("../../modules/uv-shared-module/BaseExtension");
 import BaseProvider = require("../../modules/uv-shared-module/BaseProvider");
 import BootStrapper = require("../../Bootstrapper");
@@ -9,22 +9,19 @@ import ExternalContentDialogue = require("../../modules/uv-dialogues-module/Exte
 import FooterPanel = require("../../modules/uv-searchfooterpanel-module/FooterPanel");
 import GalleryView = require("../../modules/uv-treeviewleftpanel-module/GalleryView");
 import HelpDialogue = require("../../modules/uv-dialogues-module/HelpDialogue");
-import IAccessToken = require("../../modules/uv-shared-module/IAccessToken");
 import IProvider = require("../../modules/uv-shared-module/IProvider");
 import ISeadragonProvider = require("./ISeadragonProvider");
 import LeftPanel = require("../../modules/uv-shared-module/LeftPanel");
 import Mode = require("./Mode");
 import MoreInfoRightPanel = require("../../modules/uv-moreinforightpanel-module/MoreInfoRightPanel");
 import PagingHeaderPanel = require("../../modules/uv-pagingheaderpanel-module/PagingHeaderPanel");
-import Params = require("../../modules/uv-shared-module/Params");
-import Resource = require("../../modules/uv-shared-module/Resource");
+import Params = require("../../Params");
+import ExternalResource = require("../../modules/uv-shared-module/ExternalResource");
 import RightPanel = require("../../modules/uv-shared-module/RightPanel");
 import SeadragonCenterPanel = require("../../modules/uv-seadragoncenterpanel-module/SeadragonCenterPanel");
 import Settings = require("../../modules/uv-shared-module/Settings");
 import SettingsDialogue = require("./SettingsDialogue");
 import Shell = require("../../modules/uv-shared-module/Shell");
-import Storage = require("../../modules/uv-shared-module/Storage");
-import StorageItem = require("../../modules/uv-shared-module/StorageItem");
 import ThumbsView = require("../../modules/uv-treeviewleftpanel-module/ThumbsView");
 import TreeView = require("../../modules/uv-treeviewleftpanel-module/TreeView");
 import TreeViewLeftPanel = require("../../modules/uv-treeviewleftpanel-module/TreeViewLeftPanel");
@@ -44,7 +41,6 @@ class Extension extends BaseExtension {
     footerPanel: FooterPanel;
     headerPanel: PagingHeaderPanel;
     helpDialogue: HelpDialogue;
-    isLoading: boolean = false;
     leftPanel: TreeViewLeftPanel;
     mode: Mode;
     rightPanel: MoreInfoRightPanel;
@@ -59,16 +55,37 @@ class Extension extends BaseExtension {
 
         var that = this;
 
-        // events.
+        $.subscribe(Commands.CLEAR_SEARCH, (e) => {
+            this.triggerSocket(Commands.CLEAR_SEARCH);
+        });
+
+        $.subscribe(Commands.SEARCH_PREVIEW_START, (e) => {
+            this.triggerSocket(Commands.SEARCH_PREVIEW_START);
+        });
+
+        $.subscribe(Commands.SEARCH_PREVIEW_FINISH, (e) => {
+            this.triggerSocket(Commands.SEARCH_PREVIEW_FINISH);
+        });
+
+        $.subscribe(Commands.SEARCH_RESULTS, (e, obj) => {
+            this.triggerSocket(Commands.SEARCH_RESULTS, obj);
+        });
+
+        $.subscribe(Commands.SEARCH_RESULTS_EMPTY, (e) => {
+            this.triggerSocket(Commands.SEARCH_RESULTS_EMPTY);
+        });
+
         $.subscribe(Commands.FIRST, (e) => {
+            this.triggerSocket(Commands.FIRST);
             this.viewPage(this.provider.getFirstPageIndex());
         });
 
-        $.subscribe(BaseCommands.HOME, (e) => {
+        $.subscribe(BaseCommands.HOME, (e) => {;
             this.viewPage(this.provider.getFirstPageIndex());
         });
 
         $.subscribe(Commands.LAST, (e) => {
+            this.triggerSocket(Commands.LAST);
             this.viewPage(this.provider.getLastPageIndex());
         });
 
@@ -77,10 +94,12 @@ class Extension extends BaseExtension {
         });
 
         $.subscribe(Commands.PREV, (e) => {
+            this.triggerSocket(Commands.PREV);
             this.viewPage(this.provider.getPrevPageIndex());
         });
 
         $.subscribe(Commands.NEXT, (e) => {
+            this.triggerSocket(Commands.NEXT);
             this.viewPage(this.provider.getNextPageIndex());
         });
 
@@ -92,24 +111,44 @@ class Extension extends BaseExtension {
             this.viewPage(this.provider.getNextPageIndex());
         });
 
+        $.subscribe(BaseCommands.UP_ARROW, (e) => {
+            if (!this.useArrowKeysToNavigate())
+                this.centerPanel.setFocus();
+        });
+
+        $.subscribe(BaseCommands.DOWN_ARROW, (e) => {
+            if (!this.useArrowKeysToNavigate())
+                this.centerPanel.setFocus();
+        });
+
         $.subscribe(BaseCommands.LEFT_ARROW, (e) => {
-            this.viewPage(this.provider.getPrevPageIndex());
+            if (this.useArrowKeysToNavigate())
+                this.viewPage(this.provider.getPrevPageIndex());
+            else
+                this.centerPanel.setFocus();
         });
 
         $.subscribe(BaseCommands.RIGHT_ARROW, (e) => {
-            this.viewPage(this.provider.getNextPageIndex());
+            if (this.useArrowKeysToNavigate())
+                this.viewPage(this.provider.getNextPageIndex());
+            else
+                this.centerPanel.setFocus();
         });
 
         $.subscribe(Commands.MODE_CHANGED, (e, mode: string) => {
+            this.triggerSocket(Commands.MODE_CHANGED, mode);
             this.mode = new Mode(mode);
-            $.publish(BaseCommands.SETTINGS_CHANGED, [mode]);
+            var settings: ISettings = this.provider.getSettings();
+            $.publish(BaseCommands.SETTINGS_CHANGED, [settings]);
         });
 
         $.subscribe(Commands.PAGE_SEARCH, (e, value: string) => {
+            this.triggerSocket(Commands.PAGE_SEARCH, value);
             this.viewLabel(value);
         });
 
         $.subscribe(Commands.IMAGE_SEARCH, (e, index: number) => {
+            this.triggerSocket(Commands.IMAGE_SEARCH, index);
             this.viewPage(index);
         });
 
@@ -119,14 +158,17 @@ class Extension extends BaseExtension {
         });
 
         $.subscribe(Commands.VIEW_PAGE, (e, index: number) => {
+            this.triggerSocket(Commands.VIEW_PAGE, index);
             this.viewPage(index);
         });
 
         $.subscribe(Commands.NEXT_SEARCH_RESULT, () => {
+            this.triggerSocket(Commands.NEXT_SEARCH_RESULT);
             this.nextSearchResult();
         });
 
         $.subscribe(Commands.PREV_SEARCH_RESULT, () => {
+            this.triggerSocket(Commands.PREV_SEARCH_RESULT);
             this.prevSearchResult();
         });
 
@@ -135,6 +177,7 @@ class Extension extends BaseExtension {
         });
 
         $.subscribe(Commands.TREE_NODE_SELECTED, (e, data: any) => {
+            this.triggerSocket(Commands.TREE_NODE_SELECTED, data.path);
             this.treeNodeSelected(data);
         });
 
@@ -147,7 +190,7 @@ class Extension extends BaseExtension {
             Shell.$rightPanel.hide();
         });
 
-        $.subscribe(BaseCommands.LEFTPANEL_COLLAPSE_FULL_FINISH, (e) => {
+        $.subscribe(BaseCommands.LEFTPANEL_COLLAPSE_FULL_FINISH, (e) => {;
             Shell.$centerPanel.show();
             Shell.$rightPanel.show();
             this.resize();
@@ -158,34 +201,32 @@ class Extension extends BaseExtension {
                 this.setParam(Params.zoom, this.centerPanel.serialiseBounds(this.centerPanel.currentBounds));
             }
 
-            var canvas = this.provider.getCurrentCanvas();
+            var canvas: Manifesto.ICanvas = this.provider.getCurrentCanvas();
 
             this.triggerSocket(Commands.CURRENT_VIEW_URI,
                 {
                     "cropUri": (<ISeadragonProvider>that.provider).getCroppedImageUri(canvas, this.getViewer(), true),
-                    "fullUri": (<ISeadragonProvider>that.provider).getConfinedImageUri(canvas, canvas.width, canvas.height)
+                    "fullUri": (<ISeadragonProvider>that.provider).getConfinedImageUri(canvas, canvas.getWidth(), canvas.getHeight())
                 });
         });
 
         $.subscribe(Commands.SEADRAGON_OPEN, () => {
-            this.isLoading = false;
+            if (!this.useArrowKeysToNavigate())
+                this.centerPanel.setFocus();
         });
 
         $.subscribe(Commands.SEADRAGON_ROTATION, (e, rotation) => {
+            this.triggerSocket(Commands.SEADRAGON_ROTATION);
             this.currentRotation = rotation;
             this.setParam(Params.rotation, rotation);
         });
 
-        $.subscribe(BaseCommands.EMBED, (e) => {
-            $.publish(BaseCommands.SHOW_EMBED_DIALOGUE);
-        });
-
-        $.subscribe(BaseCommands.DOWNLOAD, (e) => {
-            $.publish(BaseCommands.SHOW_DOWNLOAD_DIALOGUE);
-        });
+        
     }
 
     createModules(): void{
+        super.createModules();
+
         this.headerPanel = new PagingHeaderPanel(Shell.$headerPanel);
 
         if (this.isLeftPanelEnabled()){
@@ -229,141 +270,33 @@ class Extension extends BaseExtension {
         }
     }
 
-    viewMedia(): void {
-        var canvasIndex = parseInt(this.getParam(Params.canvasIndex)) || this.provider.getStartCanvasIndex();
-
-        if (this.provider.isCanvasIndexOutOfRange(canvasIndex)){
-            this.showMessage(this.provider.config.content.canvasIndexOutOfRange);
-            return;
-        }
-
-        this.viewPage(canvasIndex || this.provider.getStartCanvasIndex());
-    }
-
     updateSettings(): void {
         this.viewPage(this.provider.canvasIndex, true);
-        $.publish(BaseCommands.SETTINGS_CHANGED);
+        var settings: ISettings = this.provider.getSettings();
+        $.publish(BaseCommands.SETTINGS_CHANGED, [settings]);
     }
 
     viewPage(canvasIndex: number, isReload?: boolean): void {
 
-        // todo: stopgap until this issue is resolved: https://github.com/openseadragon/openseadragon/issues/629
-        if (this.isLoading){
-            return;
-        }
-
         // if it's a valid canvas index.
         if (canvasIndex === -1) return;
 
-        this.isLoading = true;
+        if (this.provider.isCanvasIndexOutOfRange(canvasIndex)){
+            this.showMessage(this.provider.config.content.canvasIndexOutOfRange);
+            canvasIndex = 0;
+        }
 
         if (this.provider.isPagingSettingEnabled() && !isReload){
             var indices = this.provider.getPagedIndices(canvasIndex);
 
             // if the page is already displayed, only advance canvasIndex.
             if (indices.contains(this.provider.canvasIndex)) {
-                this.viewCanvas(canvasIndex, () => {
-                    this.setParam(Params.canvasIndex, canvasIndex);
-                });
-
-                this.isLoading = false;
+                this.viewCanvas(canvasIndex);
                 return;
             }
         }
 
-        this.viewCanvas(canvasIndex, () => {
-            var canvas = this.provider.getCanvasByIndex(canvasIndex);
-            var uri = (<ISeadragonProvider>this.provider).getImageUri(canvas);
-            $.publish(BaseCommands.OPEN_MEDIA, [uri]);
-            this.setParam(Params.canvasIndex, canvasIndex);
-        });
-
-    }
-
-    getImages(): Promise<Resource[]> {
-        return new Promise<Resource[]>((resolve) => {
-            (<ISeadragonProvider>this.provider).getImages(
-                this.login,
-                this.getAccessToken,
-                this.storeAccessToken,
-                this.getStoredAccessToken,
-                this.handleResourceResponse).then((images: Resource[]) => {
-                resolve(images);
-            })['catch']((errorMessage) => {
-                this.showMessage(errorMessage);
-            });
-        });
-    }
-
-    login(loginServiceUrl: string): Promise<void> {
-        return new Promise<void>((resolve) => {
-
-            var win = window.open(loginServiceUrl, 'loginwindow', 'height=600,width=600');
-
-            var pollTimer = window.setInterval(() => {
-                if (win.closed) {
-                    window.clearInterval(pollTimer);
-                    $.publish(BaseCommands.AUTHORIZATION_OCCURRED);
-                    resolve();
-                }
-            }, 500);
-        });
-    }
-
-    getAccessToken(tokenServiceUrl: string): Promise<IAccessToken> {
-        return new Promise<IAccessToken>((resolve, reject) => {
-            $.getJSON(tokenServiceUrl + "?callback=?", (token: IAccessToken) => {
-                resolve(token);
-            }).fail((error) => {
-                reject(error);
-            });
-        });
-    }
-
-    storeAccessToken(resource: Resource, token: IAccessToken): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            Storage.set(resource.tokenService, token, token.expiresIn);
-            resolve();
-        });
-    }
-
-    getStoredAccessToken(url: string): Promise<IAccessToken> {
-
-        return new Promise<IAccessToken>((resolve, reject) => {
-
-            // first try an exact match of the url
-            var item: StorageItem = Storage.get(url);
-
-            if (item){
-                resolve(<IAccessToken>item.value);
-            }
-
-            // find an access token for the domain
-            var domain = Utils.Urls.GetUrlParts(url).hostname;
-
-            var items: StorageItem[] = Storage.getItems();
-
-            for(var i = 0; i < items.length; i++) {
-                item = items[i];
-
-                if(item.key.contains(domain)) {
-                    resolve(<IAccessToken>item.value);
-                }
-            }
-
-            resolve(null);
-        });
-    }
-
-    handleResourceResponse(resource: Resource) : Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            if (resource.status === 200) {
-                resolve(resource);
-            } else {
-                // access denied
-                reject(resource.error.statusText);
-            }
-        });
+        this.viewCanvas(canvasIndex);
     }
 
     getViewer() {
@@ -373,13 +306,12 @@ class Extension extends BaseExtension {
     getMode(): Mode {
         if (this.mode) return this.mode;
 
-        switch (this.provider.getManifestType()) {
-            case 'monograph':
+        switch (this.provider.getManifestType().toString()) {
+            case manifesto.ManifestType.monograph().toString():
                 return Mode.page;
                 break;
-            case 'archive',
-                 'boundmanuscript':
-                return Mode.image;
+            case manifesto.ManifestType.manuscript().toString():
+                return Mode.page;
                 break;
             default:
                 return Mode.image;
@@ -404,15 +336,15 @@ class Extension extends BaseExtension {
         return this.currentRotation;
     }
 
-    viewStructure(path: string): void {
+    viewRange(path: string): void {
 
-        var structure = this.provider.getStructureByPath(path);
+        var range = this.provider.getRangeByPath(path);
 
-        if (!structure) return;
+        if (!range) return;
 
-        var canvas = structure.canvases[0];
+        var canvasId = range.getCanvases()[0];
 
-        var index = this.provider.getCanvasIndexById(canvas['@id']);
+        var index = this.provider.getCanvasIndexById(canvasId);
 
         this.viewPage(index);
     }
@@ -438,10 +370,10 @@ class Extension extends BaseExtension {
     treeNodeSelected(data: any): void{
         if (!data.type) return;
 
-        if (data.type == 'manifest') {
+        if (data.type === 'manifest') {
             this.viewManifest(data);
         } else {
-            this.viewStructure(data.path);
+            this.viewRange(data.path);
         }
     }
 
@@ -450,8 +382,8 @@ class Extension extends BaseExtension {
         var that = this;
 
         (<ISeadragonProvider>this.provider).searchWithin(terms, (results: any) => {
-            if (results.resources.length) {
-                $.publish(Commands.SEARCH_RESULTS, [terms, results.resources]);
+            if (results.resources && results.resources.length) {
+                $.publish(Commands.SEARCH_RESULTS, [{terms, results}]);
 
                 // reload current index as it may contain results.
                 that.viewPage(that.provider.canvasIndex, true);

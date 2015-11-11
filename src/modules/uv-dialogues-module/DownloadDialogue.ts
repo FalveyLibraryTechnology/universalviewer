@@ -1,4 +1,4 @@
-import BaseCommands = require("../uv-shared-module/Commands");
+import BaseCommands = require("../uv-shared-module/BaseCommands");
 import Dialogue = require("../uv-shared-module/Dialogue");
 import DownloadOption = require("../uv-shared-module/DownloadOption");
 
@@ -57,17 +57,17 @@ class DownloadDialogue extends Dialogue {
         }
     }
 
-    addEntireFileDownloadOption(rendering: any): void{
-        var fileUri = rendering['@id'];
-        var label = this.provider.getLocalisedValue(rendering['label']);
+    addEntireFileDownloadOption(rendering: Manifesto.IRendering): void{
+        var fileUri = rendering.id;
+        var label = rendering.getLabel();
         if (label) {
             label += " ({0})";
         } else {
             label = this.content.entireFileAsOriginal;
         }
         var fileType;
-        if (rendering.format) {
-            fileType = this.simplifyMimeType(rendering.format);
+        if (rendering.getFormat()) {
+            fileType = this.simplifyMimeType(rendering.getFormat().toString());
         } else {
             fileType = this.getFileExtension(fileUri);
         }

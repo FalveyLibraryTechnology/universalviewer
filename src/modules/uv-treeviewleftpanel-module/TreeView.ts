@@ -1,17 +1,17 @@
-import BaseCommands = require("../uv-shared-module/Commands");
+import BaseCommands = require("../uv-shared-module/BaseCommands");
 import BaseView = require("../uv-shared-module/BaseView");
 import Commands = require("../../extensions/uv-seadragon-extension/Commands");
+import ISeadragonProvider = require("../../extensions/uv-seadragon-extension/ISeadragonProvider");
 import Shell = require("../uv-shared-module/Shell");
-import TreeNode = require("../uv-shared-module/TreeNode");
 
 class TreeView extends BaseView {
 
     $tree: JQuery;
     elideCount: number;
     isOpen: boolean = false;
-    selectedNode: any;
+    selectedNode: Manifesto.TreeNode;
 
-    public rootNode: TreeNode;
+    public rootNode: Manifesto.TreeNode;
 
     constructor($element: JQuery) {
         super($element, true, true);
@@ -19,10 +19,6 @@ class TreeView extends BaseView {
 
     create(): void {
         super.create();
-
-        $.subscribe(BaseCommands.CANVAS_INDEX_CHANGED, (e, canvasIndex) => {
-            this.selectTreeNodeFromCanvasIndex(canvasIndex);
-        });
 
         this.$tree = $('<ul class="tree"></ul>');
         this.$element.append(this.$tree);
@@ -108,6 +104,11 @@ class TreeView extends BaseView {
         this.resize();
     }
 
+    public getNodeById(id: string): Manifesto.TreeNode {
+        return this.rootNode.nodes.en().traverseUnique(node => node.nodes)
+            .where((n) => n.id === id).first();
+    }
+
     public selectPath(path: string): void {
         if (!this.rootNode) return;
 
@@ -118,25 +119,14 @@ class TreeView extends BaseView {
         this.selectNode(node);
     }
 
-    selectTreeNodeFromCanvasIndex(index: number): void {
-        // may be authenticating
-        if (index == -1) return;
-
-        this.deselectCurrentNode();
-
-        var structure = this.provider.getStructureByCanvasIndex(index);
-
-        if (!structure) return;
-
-        if (structure.treeNode) this.selectNode(structure.treeNode);
-    }
-
     deselectCurrentNode(): void {
         if (this.selectedNode) $.observable(this.selectedNode).setProperty("selected", false);
     }
 
-    selectNode(node: TreeNode): void{
+    selectNode(node: any): void{
         if (!this.rootNode) return;
+
+        this.deselectCurrentNode();
 
         this.selectedNode = node;
         $.observable(this.selectedNode).setProperty("selected", true);
@@ -145,7 +135,7 @@ class TreeView extends BaseView {
     }
 
     // walk up the tree expanding parent nodes.
-    expandParents(node: TreeNode): void{
+    expandParents(node: Manifesto.TreeNode): void{
         if (!node.parentNode) return;
 
         $.observable(node.parentNode).setProperty("expanded", true);
@@ -153,9 +143,8 @@ class TreeView extends BaseView {
     }
 
     // walks down the tree using the specified path e.g. [2,2,0]
-    getNodeByPath(parentNode: TreeNode, path: string[]): TreeNode {
-
-        if (path.length == 0) return parentNode;
+    getNodeByPath(parentNode: Manifesto.TreeNode, path: string[]): Manifesto.TreeNode {
+        if (path.length === 0) return parentNode;
         var index = path.shift();
         var node = parentNode.nodes[index];
         return this.getNodeByPath(node, path);

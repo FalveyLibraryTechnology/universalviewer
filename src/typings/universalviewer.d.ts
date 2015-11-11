@@ -28,6 +28,7 @@ interface JQueryStatic {
 // libs
 declare var easyXDM: any;
 declare var OpenSeadragon: any;
+declare var manifesto: IManifesto;
 declare var MediaElementPlayer: any;
 declare var PDFObject: any;
 declare var yepnope: any;
@@ -37,6 +38,7 @@ declare var Sanitize: any;
 // app
 interface Window{
     manifestCallback: any;
+    manifesto: IManifesto;
     browserDetect: any;
     trackEvent(category: string, action: string, label: string, value?: any);
     trackVariable(slot: number, name: string, value: string, scope: number);
@@ -46,6 +48,11 @@ interface Window{
     webViewerLoad: any; // pdfjs
     IEXMLHttpRequest: any;
     openSeadragonViewer: any; // for testing convenience
+}
+
+interface Document{
+    mozFullScreen: boolean;
+    msFullscreenElement: any;
 }
 
 // google

@@ -1,24 +1,26 @@
+import BaseCommands = require("../../modules/uv-shared-module/BaseCommands");
 import BaseExtension = require("../../modules/uv-shared-module/BaseExtension");
-import BaseCommands = require("../../modules/uv-shared-module/Commands");
-import Commands = require("./Commands");
-import LeftPanel = require("../../modules/uv-shared-module/LeftPanel");
 import BaseProvider = require("../../modules/uv-shared-module/BaseProvider");
-import RightPanel = require("../../modules/uv-shared-module/RightPanel");
 import BootStrapper = require("../../Bootstrapper");
-import MediaElementCenterPanel = require("../../modules/uv-mediaelementcenterpanel-module/MediaElementCenterPanel");
+import Commands = require("./Commands");
 import DownloadDialogue = require("./DownloadDialogue");
 import EmbedDialogue = require("./EmbedDialogue");
 import FooterPanel = require("../../modules/uv-shared-module/FooterPanel");
 import HeaderPanel = require("../../modules/uv-shared-module/HeaderPanel");
 import HelpDialogue = require("../../modules/uv-dialogues-module/HelpDialogue");
 import IProvider = require("../../modules/uv-shared-module/IProvider");
-import TreeViewLeftPanel = require("../../modules/uv-treeviewleftpanel-module/TreeViewLeftPanel");
-import Params = require("../../modules/uv-shared-module/Params");
-import Provider = require("./Provider");
+import LeftPanel = require("../../modules/uv-shared-module/LeftPanel");
+import MediaElementCenterPanel = require("../../modules/uv-mediaelementcenterpanel-module/MediaElementCenterPanel");
 import MoreInfoRightPanel = require("../../modules/uv-moreinforightpanel-module/MoreInfoRightPanel");
+import Params = require("../../Params");
+import Provider = require("./Provider");
+import ExternalResource = require("../../modules/uv-shared-module/ExternalResource");
+import RightPanel = require("../../modules/uv-shared-module/RightPanel");
 import SettingsDialogue = require("./SettingsDialogue");
 import Shell = require("../../modules/uv-shared-module/Shell");
+import Storage = require("../../modules/uv-shared-module/Storage");
 import TreeView = require("../../modules/uv-treeviewleftpanel-module/TreeView");
+import TreeViewLeftPanel = require("../../modules/uv-treeviewleftpanel-module/TreeViewLeftPanel");
 
 class Extension extends BaseExtension{
 
@@ -52,20 +54,12 @@ class Extension extends BaseExtension{
             $.publish(BaseCommands.TOGGLE_FULLSCREEN);
         });
 
-        $.subscribe(Commands.TREE_NODE_SELECTED, (e, data: any) => {
-            this.viewManifest(data);
-        });
+        //$.subscribe(Commands.TREE_NODE_SELECTED, (e, data: any) => {
+        //    this.viewManifest(data);
+        //});
 
-        $.subscribe(BaseCommands.DOWNLOAD, (e) => {
-            $.publish(BaseCommands.SHOW_DOWNLOAD_DIALOGUE);
-        });
-
-        $.subscribe(BaseCommands.EMBED, (e) => {
-            $.publish(BaseCommands.SHOW_EMBED_DIALOGUE);
-        });
-
-        $.subscribe(BaseCommands.THUMB_SELECTED, (e, index: number) => {
-            this.viewFile(index);
+        $.subscribe(BaseCommands.THUMB_SELECTED, (e, canvasIndex: number) => {
+            this.viewCanvas(canvasIndex);
         });
 
         $.subscribe(BaseCommands.LEFTPANEL_EXPAND_FULL_START, (e) => {
@@ -78,9 +72,23 @@ class Extension extends BaseExtension{
             Shell.$rightPanel.show();
             this.resize();
         });
+
+        $.subscribe(Commands.MEDIA_ENDED, (e) => {
+            this.triggerSocket(Commands.MEDIA_ENDED);
+        });
+
+        $.subscribe(Commands.MEDIA_PAUSED, (e) => {
+            this.triggerSocket(Commands.MEDIA_PAUSED);
+        });
+
+        $.subscribe(Commands.MEDIA_PLAYED, (e) => {
+            this.triggerSocket(Commands.MEDIA_PLAYED);
+        });
     }
 
     createModules(): void{
+        super.createModules();
+
         this.headerPanel = new HeaderPanel(Shell.$headerPanel);
 
         if (this.isLeftPanelEnabled()){
@@ -121,21 +129,8 @@ class Extension extends BaseExtension{
     }
 
     isLeftPanelEnabled(): boolean{
-        return  Utils.Bools.GetBool(this.provider.config.options.leftPanelEnabled, true)
+        return Utils.Bools.GetBool(this.provider.config.options.leftPanelEnabled, true)
                 && (this.provider.isMultiCanvas() || this.provider.isMultiSequence());
-    }
-
-    viewFile(canvasIndex: number): void {
-
-        // if it's a valid canvas index.
-        if (canvasIndex == -1) return;
-
-        this.viewCanvas(canvasIndex, () => {
-            var canvas = this.provider.getCanvasByIndex(canvasIndex);
-            $.publish(BaseCommands.OPEN_MEDIA, [canvas]);
-            this.setParam(Params.canvasIndex, canvasIndex);
-        });
-
     }
 }
 

@@ -13,21 +13,18 @@ class Provider extends BaseProvider implements IMediaElementProvider{
         }, bootstrapper.config.options);
     }
 
-    getEmbedScript(width: number, height: number, embedTemplate: string): string{
-
-        var esu = this.options.embedScriptUri || this.embedScriptUri;
-
-        var template = this.options.embedTemplate || embedTemplate;
+    getEmbedScript(template: string, width: number, height: number): string{
 
         var configUri = this.config.uri || '';
 
-        var script = String.format(template, this.manifestUri, this.sequenceIndex, configUri, width, height, esu);
+        var script = String.format(template, this.getSerializedLocales(), configUri, this.manifestUri, this.collectionIndex, this.manifestIndex, this.sequenceIndex, this.canvasIndex, width, height, this.embedScriptUri);
 
         return script;
     }
 
+    // todo: use canvas.getThumbnail()
     getPosterImageUri(): string{
-        return this.getCurrentCanvas().thumbnail;
+        return this.getCurrentCanvas().getProperty('thumbnail');
     }
 }
 

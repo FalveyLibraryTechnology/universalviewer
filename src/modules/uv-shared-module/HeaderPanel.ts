@@ -1,20 +1,23 @@
-import BaseCommands = require("./Commands");
+import BaseCommands = require("./BaseCommands");
 import BaseView = require("./BaseView");
 import BootstrapParams = require("../../BootstrapParams");
+import Information = require("../uv-shared-module/Information");
+import InformationAction = require("../uv-shared-module/InformationAction");
+import InformationArgs = require("../uv-shared-module/InformationArgs");
+import InformationFactory = require("../uv-shared-module/InformationFactory");
 import SettingsDialogue = require("../uv-dialogues-module/SettingsDialogue");
 
 class HeaderPanel extends BaseView {
 
-    $options: JQuery;
     $centerOptions: JQuery;
-    $rightOptions: JQuery;
-    $pagingToggleButton: JQuery;
-    $localeToggleButton: JQuery;
     $helpButton: JQuery;
+    $informationBox: JQuery;
+    $localeToggleButton: JQuery;
+    $options: JQuery;
+    $pagingToggleButton: JQuery;
+    $rightOptions: JQuery;
     $settingsButton: JQuery;
-    $messageBox: JQuery;
-
-    message: string;
+    information: Information;
 
     constructor($element: JQuery) {
         super($element, false, false);
@@ -26,16 +29,16 @@ class HeaderPanel extends BaseView {
 
         super.create();
 
-        $.subscribe(BaseCommands.SETTINGS_CHANGED, (e, message) => {
+        $.subscribe(BaseCommands.SETTINGS_CHANGED, () => {
             this.updatePagingToggle();
         });
 
-        $.subscribe(BaseCommands.SHOW_MESSAGE, (e, message) => {
-            this.showMessage(message);
+        $.subscribe(BaseCommands.SHOW_INFORMATION, (e, args: InformationArgs) => {
+            this.showInformation(args);
         });
 
-        $.subscribe(BaseCommands.HIDE_MESSAGE, () => {
-            this.hideMessage();
+        $.subscribe(BaseCommands.HIDE_INFORMATION, () => {
+            this.hideInformation();
         });
 
         this.$options = $('<div class="options"></div>');
@@ -60,18 +63,19 @@ class HeaderPanel extends BaseView {
         this.$settingsButton.attr('title', this.content.settings);
         this.$rightOptions.append(this.$settingsButton);
 
-        this.$messageBox = $('<div class="messageBox"> \
-                                <div class="text"></div> \
-                                <div class="close"></div> \
-                              </div>');
+        this.$informationBox = $('<div class="informationBox"> \
+                                    <div class="message"></div> \
+                                    <div class="actions"></div> \
+                                    <div class="close"></div> \
+                                  </div>');
 
-        this.$element.append(this.$messageBox);
+        this.$element.append(this.$informationBox);
 
-        this.$messageBox.hide();
-        this.$messageBox.find('.close').attr('title', this.content.close);
-        this.$messageBox.find('.close').on('click', (e) => {
+        this.$informationBox.hide();
+        this.$informationBox.find('.close').attr('title', this.content.close);
+        this.$informationBox.find('.close').on('click', (e) => {
             e.preventDefault();
-            this.hideMessage();            
+            $.publish(BaseCommands.HIDE_INFORMATION);
         });
 
         this.updatePagingToggle();
@@ -85,7 +89,7 @@ class HeaderPanel extends BaseView {
         });
 
         this.$localeToggleButton.on('click', () => {
-            this.provider.changeLocale(this.$localeToggleButton.data('locale'));
+            this.provider.changeLocale(String(this.$localeToggleButton.data('locale')));
         });
 
         this.$settingsButton.onPressed(() => {
@@ -102,14 +106,12 @@ class HeaderPanel extends BaseView {
     }
 
     updatePagingToggle(): void {
-        if (!this.provider.isPagingEnabled()){
+        if (!this.pagingToggleIsVisible()){
             this.$pagingToggleButton.hide();
             return;
         }
 
-        var settings: ISettings = this.provider.getSettings();
-
-        if (settings.pagingEnabled){
+        if (this.provider.isPagingSettingEnabled()){
             this.$pagingToggleButton.removeClass('two-up');
             this.$pagingToggleButton.addClass('one-up');
             this.$pagingToggleButton.prop('title', this.content.oneUp);
@@ -139,20 +141,36 @@ class HeaderPanel extends BaseView {
     }
 
     pagingToggleIsVisible(): boolean {
-        return this.options.pagingToggleEnabled;
+        return this.options.pagingToggleEnabled && this.provider.isPagingAvailable();
     }
 
-    showMessage(message: string): void {
-        this.message = message;
-        this.$messageBox.find('.text').html(message).find('a').attr('target', '_top');
-        this.$messageBox.show();
-        this.$element.addClass('showMessage');
+    showInformation(args: InformationArgs): void {
+
+        var informationFactory: InformationFactory = new InformationFactory(this.provider);
+
+        this.information = informationFactory.Get(args);
+        var $message = this.$informationBox.find('.message');
+        $message.html(this.information.message).find('a').attr('target', '_top');
+        var $actions = this.$informationBox.find('.actions');
+        $actions.empty();
+
+        for (var i = 0; i < this.information.actions.length; i++) {
+            var action: InformationAction = this.information.actions[i];
+
+            var $action = $('<a href="#" class="btn btn-default">' + action.label + '</a>');
+            $action.on('click', action.action);
+
+            $actions.append($action);
+        }
+
+        this.$informationBox.show();
+        this.$element.addClass('showInformation');
         this.extension.resize();
     }
 
-    hideMessage(): void {
-        this.$element.removeClass('showMessage');
-        this.$messageBox.hide();
+    hideInformation(): void {
+        this.$element.removeClass('showInformation');
+        this.$informationBox.hide();
         this.extension.resize();
     }
 
@@ -178,15 +196,15 @@ class HeaderPanel extends BaseView {
             left: pos
         });
 
-        if (this.$messageBox.is(':visible')){
-            var $text = this.$messageBox.find('.text');
-            //$text.actualWidth(this.$element.width() - this.$messageBox.find('.close').outerWidth(true));
-            $text.width(this.$element.width() - this.$messageBox.find('.close').outerWidth(true));
-            $text.ellipsisFill(this.message);
+        if (this.$informationBox.is(':visible')){
+            var $actions = this.$informationBox.find('.actions');
+            var $message = this.$informationBox.find('.message');
+            $message.width(this.$element.width() - $message.horizontalMargins() - $actions.outerWidth(true) - this.$informationBox.find('.close').outerWidth(true) - 1);
+            $message.ellipsisFill(this.information.message);
         }
 
         // hide toggle buttons below minimum width
-        if (this.extension.width() < this.provider.options.minWidthBreakPoint){
+        if (this.extension.width() < this.provider.config.options.minWidthBreakPoint){
             if (this.pagingToggleIsVisible()) this.$pagingToggleButton.hide();
             if (this.localeToggleIsVisible()) this.$localeToggleButton.hide();
         } else {

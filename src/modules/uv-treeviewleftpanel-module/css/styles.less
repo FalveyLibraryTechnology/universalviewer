@@ -45,6 +45,41 @@
 
         .tabsContent{
             padding: @padding-medium;
+
+            .options{
+                overflow: hidden;
+
+                .treeView{
+                    height: 30px;
+
+                    span{
+                        display: block;
+                        float: left;
+                        color: @text-color;
+                        padding: 5px 4px 0 10px;
+                        font-size: @font-size-small;
+                    }
+
+                    select{
+                        float: left;
+                        font-size: @font-size-small;
+                    }
+                }
+            }
+
+            .btn-group {
+                .btn{
+                    padding: 0 @margin-small-horizontal 0 @margin-small-horizontal;
+                    background: @gray;
+                    color: @gray-light;
+                    width: 55px;
+
+                    &.on {
+                        background: #DDD;
+                        color: #000;
+                    }
+                }
+            }
         }
 
         .views{
@@ -151,11 +186,24 @@
                             }
                         }
 
+                        &.searchpreview{
+
+                            .wrap{
+                                border: 2px solid @link-color;
+                            }
+                        }
+
                         span {
                             font-size: @font-size-small;
                             color: #fff;
                             display: block;
                             padding: 2px 0 0 0;
+                        }
+
+                        .label {
+                            overflow-x: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
                         }
 
                         &.placeholder {
@@ -166,7 +214,8 @@
 
                         &.oneCol{
                             margin: 0 0 7px 0;
-                            .wrap{
+                            .wrap,
+                            .label {
                                 width: 208px;
                                 max-height: 373px;
                             }
@@ -174,7 +223,8 @@
 
                         &.twoCol{
                             margin: 0 7px 7px 0;
-                            .wrap{
+                            .wrap,
+                            .label {
                                 width: 98px;
                                 max-height: 182px;
                             }
@@ -280,11 +330,24 @@
                                 }
                             }
 
+                            &.searchpreview{
+
+                                .wrap{
+                                    border: 2px solid @link-color;
+                                }
+                            }
+
                             span{
                                 font-size: @font-size-small;
                                 color: #fff;
                                 display: block;
                                 padding: 2px 0 0 0;
+                            }
+
+                            .label {
+                                overflow-x: hidden;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
                             }
 
                             &.placeholder{

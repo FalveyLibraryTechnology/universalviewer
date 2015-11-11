@@ -18,7 +18,6 @@
                     font-size: @font-size-small;
                 }
 
-
                 .sizes{
                     height: 105px;
                     margin: 10px 0 0 0;
@@ -194,6 +193,14 @@
                 }
             }
 
+            .version{
+                float: left;
+            }
+
+            .website{
+                float: right;
+            }
+
             .bottom{
                 background: none;
             }
@@ -213,6 +220,46 @@
                         overflow: auto;
                         border: none;
                     }
+                }
+            }
+
+            .bottom{
+                background: none;
+            }
+        }
+
+        &.clickthrough{
+            width: 470px;
+            height: 250px;
+
+            .message{
+                height: 180px;
+
+                &.loading{
+                    .loading(@loader-white-bg);
+                }
+
+                h1{
+                    border-bottom: none;
+                    font-size: @font-size-base;
+                }
+            }
+
+            .bottom{
+                background: none;
+            }
+        }
+
+        &.login{
+            width: 470px;
+            height: 250px;
+
+            .message{
+                height: 180px;
+
+                h1{
+                    border-bottom: none !important;
+                    font-size: @font-size-base !important;
                 }
             }
 

@@ -1,17 +1,35 @@
 # Universal Viewer
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/UniversalViewer/universalviewer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/UniversalViewer/universalviewer.svg?branch=master)](https://travis-ci.org/UniversalViewer/universalviewer) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/UniversalViewer/universalviewer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[Demo](http://universalviewer.azurewebsites.net/)
+    bower install uv
+
+http://universalviewer.github.io/examples/
 
 [Google group](https://groups.google.com/forum/#!forum/universalviewer)
 
+[Twitter](https://twitter.com/universalviewer)
+
 ## Contributors
 
-![Wellcome Library](https://raw.githubusercontent.com/UniversalViewer/universalviewer/master/assets/wellcome_logo.png "Wellcome Library")
-![British Library](https://raw.githubusercontent.com/UniversalViewer/universalviewer/master/assets/bl_logo.png "British Library")
-![National Library of Wales](https://raw.githubusercontent.com/UniversalViewer/universalviewer/master/assets/nlw_logo.png "National Library of Wales")
-![Villanova University, Falvey Memorial Library](https://raw.githubusercontent.com/UniversalViewer/universalviewer/master/assets/vufalvey_logo.png "Villanova University, Falvey Memorial Library")
+![Wellcome Library](https://raw.githubusercontent.com/UniversalViewer/assets/master/wellcome_logo.png "Wellcome Library")
+![British Library](https://raw.githubusercontent.com/UniversalViewer/assets/master/bl_logo.png "British Library")
+![National Library of Wales](https://raw.githubusercontent.com/UniversalViewer/assets/master/nlw_logo.png "National Library of Wales")
+![Villanova University, Falvey Memorial Library](https://raw.githubusercontent.com/UniversalViewer/assets/master/vufalvey_logo.png "Villanova University, Falvey Memorial Library")
+
+## About
+
+The Universal Viewer is an [open source](https://github.com/UniversalViewer/universalviewer/blob/master/LICENSE.txt) project to enable cultural heritage institutions to present their digital artifacts in an [IIIF-compliant](http://iiif.io/) and highly customisable user interface. 
+
+Features:
+
+- [OpenSeadragon](https://openseadragon.github.io/) image zooming using the [IIIF image API](http://iiif.io/api/image/2.0/).
+- YouTube-style embedding with deep links to specific pages/zoom regions.
+- [Themable](https://stackedit.io/viewer#!provider=gist&gistId=5411c4576c2ec7387bba&filename=uv-theming-tutorial.md), fork the [UV theme](https://github.com/UniversalViewer/uv-en-GB-theme) on github to create your own.
+- Highly [configurable](https://github.com/UniversalViewer/universalviewer/wiki/Configuration) and [extensible](http://universalviewer.gitbooks.io/custom-extensions/content/).
+- Supports "IxIF" out of the box, allowing [audio](http://universalviewer.github.io/examples/?manifest=http://wellcomelibrary.org/iiif/b17307922/manifest), [video](http://universalviewer.github.io/examples/?manifest=http://wellcomelibrary.org/iiif/b16659090/manifest), and [pdf](http://universalviewer.github.io/examples/?manifest=http://wellcomelibrary.org/iiif/b17502792/manifest) viewing experiences.
+- Supports search and autocomplete service integration with overlayed search results.
+- Internationalised UI using [transifex.com](https://www.transifex.com/) (currently supports English and Welsh. Volunteers for more translations gratefully accepted!)
 
 ## Stable Builds
 
@@ -58,19 +76,19 @@ To build the debug version of the viewer, just run (on the command line, in the 
 
 This will compile the [.less](http://lesscss.org) files into .css and [.ts](http://typescriptlang.org) files into .js with source maps to aid in debugging.
 
-### Release Builds
+### Distribution Builds
 
-To build the release version of the viewer, just run (on the command line, in the `universalviewer` folder):
+To build the distribution version of the UV, just run (on the command line, in the `universalviewer` folder):
 
 	grunt build
 
-The built files appear in the `build` folder and are copied to `examples/uv-[build]`.
+A versioned `uv-major.minor.patch` folder along with compressed .zip and .tar files will appear in the `/dist` folder. Use these in your website, or alternatively use:
+ 
+    bower install uv --save
+    
+which will download the distribution folder to `bower_components`.
 
-If you want to create a zip file for distribution (this will appear in the `dist` folder), use:
-
-	grunt dist
-
-Note that the `build` folder is masked with `.gitignore`; it's just for your local use, and won't be checked in to the repository.
+See https://github.com/UniversalViewer/demo-site for examples.
 
 ### Examples
 

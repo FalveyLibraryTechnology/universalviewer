@@ -2,17 +2,21 @@ require.config({
     paths: {
         'browserdetect': 'lib/browserdetect',
         'promise': 'lib/promise.min',
+        'ex': 'lib/ex.es3.min',
         'ext': 'lib/extensions',
+        'httpstatuscodes': 'lib/http-status-codes',
         'jquery': 'lib/jquery-1.10.2.min',
         'jsviews': 'lib/jsviews.min',
         'l10n': 'lib/l10n',
         'length': 'lib/Length.min',
+        'lodash': 'lib/lodash.min',
+        'manifesto': 'lib/manifesto',
         'modernizr': 'lib/modernizr',
         'plugins': 'lib/jquery-plugins',
         'pubsub': 'lib/pubsub',
         'sanitize': 'lib/sanitize',
-        'underscore': 'lib/underscore-min',
         'utils': 'lib/utils',
+        'xdomainrequest': 'lib/jquery.xdomainrequest',
         'yepnope': 'lib/yepnope.1.5.4-min',
         'yepnopecss': 'lib/yepnope.css'
     },
@@ -32,6 +36,9 @@ require.config({
         underscore: {
             exports: '_'
         },
+        xdomainrequest: {
+           deps: ['jquery']
+        },
         yepnopecss: {
             deps: ['yepnope']
         }
@@ -46,19 +53,23 @@ require([
     'extensions/uv-pdf-extension/Provider',
     'extensions/uv-seadragon-extension/Extension',
     'extensions/uv-seadragon-extension/Provider',
+    'manifesto',
     'browserdetect',
+    'ex',
     'ext',
+    'httpstatuscodes',
     'jquery',
     'jsviews',
     'l10n',
     'length',
+    'lodash',
     'modernizr',
     'plugins',
     'promise',
     'pubsub',
     'sanitize',
-    'underscore',
     'utils',
+    'xdomainrequest',
     'yepnope',
     'yepnopecss',
     ], (
@@ -68,33 +79,36 @@ require([
     pdfExtension,
     pdfProvider,
     seadragonExtension,
-    seadragonProvider
+    seadragonProvider,
+    manifesto
     ) => {
 
         // todo: use a compiler flag (when available)
         window.DEBUG = true; // this line is removed on build.
 
+        window.manifesto = manifesto;
+
         var extensions = {};
 
-        extensions['seadragon/iiif'] = {
+        extensions[manifesto.CanvasType.canvas().toString()] = {
             type: seadragonExtension,
             provider: seadragonProvider,
             name: 'uv-seadragon-extension'
         };
 
-        extensions['video/ixif'] = {
+        extensions[manifesto.ElementType.movingimage().toString()] = {
             type: mediaelementExtension,
             provider: mediaelementProvider,
             name: 'uv-mediaelement-extension'
         };
 
-        extensions['audio/ixif'] = {
+        extensions[manifesto.ElementType.sound().toString()] = {
             type: mediaelementExtension,
             provider: mediaelementProvider,
             name: 'uv-mediaelement-extension'
         };
 
-        extensions['pdf/ixif'] = {
+        extensions[manifesto.RenderingFormat.pdf().toString()] = {
             type: pdfExtension,
             provider: pdfProvider,
             name: 'uv-pdf-extension'
