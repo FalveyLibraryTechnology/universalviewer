@@ -44,10 +44,14 @@ declare module Manifesto {
 declare module Manifesto {
     class ElementType extends StringValue {
         static DOCUMENT: ElementType;
+        static IMAGE: ElementType;
         static MOVINGIMAGE: ElementType;
+        static PHYSICALOBJECT: ElementType;
         static SOUND: ElementType;
         document(): ElementType;
+        image(): ElementType;
         movingimage(): ElementType;
+        physicalobject(): ElementType;
         sound(): ElementType;
     }
 }
@@ -233,6 +237,7 @@ declare module Manifesto {
     class Manifest extends IIIFResource implements IManifest {
         index: number;
         rootRange: IRange;
+        private sequences;
         constructor(jsonld: any, options?: IManifestoOptions);
         private _getRootRange();
         private _getRangeById(id);
@@ -247,6 +252,7 @@ declare module Manifesto {
         private _parseTreeNode(node, range);
         getManifestType(): ManifestType;
         isMultiSequence(): boolean;
+        getViewingDirection(): ViewingDirection;
     }
 }
 declare module Manifesto {
@@ -284,6 +290,7 @@ declare module Manifesto {
 declare var _last: any;
 declare module Manifesto {
     class Sequence extends ManifestResource implements ISequence {
+        private canvases;
         constructor(jsonld: any, options: IManifestoOptions);
         getCanvases(): ICanvas[];
         getCanvasById(id: string): ICanvas;
@@ -373,12 +380,10 @@ declare var url: any;
 declare module Manifesto {
     class Utils {
         static getLocalisedValue(resource: any, locale: string): string;
-        static loadResource(uri: string): Promise<any>;
-        static loadExternalResource(resource: IExternalResource, clickThrough: (resource: IExternalResource) => Promise<void>, login: (resource: IExternalResource) => Promise<void>, getAccessToken: (resource: IExternalResource) => Promise<IAccessToken>, storeAccessToken: (resource: IExternalResource, token: IAccessToken) => Promise<void>, getStoredAccessToken: (resource: IExternalResource) => Promise<IAccessToken>, handleResourceResponse: (resource: IExternalResource) => Promise<any>, options?: IManifestoOptions): Promise<IExternalResource>;
-        static loadExternalResources(resources: IExternalResource[], clickThrough: (resource: IExternalResource) => Promise<void>, login: (resource: IExternalResource) => Promise<void>, getAccessToken: (resource: IExternalResource) => Promise<IAccessToken>, storeAccessToken: (resource: IExternalResource, token: IAccessToken) => Promise<void>, getStoredAccessToken: (resource: IExternalResource) => Promise<IAccessToken>, handleResourceResponse: (resource: IExternalResource) => Promise<any>, options?: IManifestoOptions): Promise<IExternalResource[]>;
-        static authorize(resource: IExternalResource, clickThrough: (resource: IExternalResource) => Promise<void>, login: (resource: IExternalResource) => Promise<void>, getAccessToken: (resource: IExternalResource) => Promise<IAccessToken>, storeAccessToken: (resource: IExternalResource, token: IAccessToken) => Promise<void>, getStoredAccessToken: (resource: IExternalResource) => Promise<IAccessToken>): Promise<IExternalResource>;
-        static getRendering(resource: any, format: RenderingFormat | string): IRendering;
-        static getRenderings(resource: any): IRendering[];
+        static loadResource(uri: string): Promise<string>;
+        static loadExternalResource(resource: IExternalResource, tokenStorageStrategy: string, clickThrough: (resource: IExternalResource) => Promise<void>, login: (resource: IExternalResource) => Promise<void>, getAccessToken: (resource: IExternalResource) => Promise<IAccessToken>, storeAccessToken: (resource: IExternalResource, token: IAccessToken, tokenStorageStrategy: string) => Promise<void>, getStoredAccessToken: (resource: IExternalResource, tokenStorageStrategy: string) => Promise<IAccessToken>, handleResourceResponse: (resource: IExternalResource) => Promise<any>, options?: IManifestoOptions): Promise<IExternalResource>;
+        static loadExternalResources(resources: IExternalResource[], tokenStorageStrategy: string, clickThrough: (resource: IExternalResource) => Promise<void>, login: (resource: IExternalResource) => Promise<void>, getAccessToken: (resource: IExternalResource) => Promise<IAccessToken>, storeAccessToken: (resource: IExternalResource, token: IAccessToken, tokenStorageStrategy: string) => Promise<void>, getStoredAccessToken: (resource: IExternalResource, tokenStorageStrategy: string) => Promise<IAccessToken>, handleResourceResponse: (resource: IExternalResource) => Promise<any>, options?: IManifestoOptions): Promise<IExternalResource[]>;
+        static authorize(resource: IExternalResource, tokenStorageStrategy: string, clickThrough: (resource: IExternalResource) => Promise<void>, login: (resource: IExternalResource) => Promise<void>, getAccessToken: (resource: IExternalResource) => Promise<IAccessToken>, storeAccessToken: (resource: IExternalResource, token: IAccessToken, tokenStorageStrategy: string) => Promise<void>, getStoredAccessToken: (resource: IExternalResource, tokenStorageStrategy: string) => Promise<IAccessToken>): Promise<IExternalResource>;
         static getService(resource: any, profile: ServiceProfile | string): IService;
         static getServiceByReference(resource: any, id: string): any;
         static getServices(resource: any): IService[];
@@ -484,6 +489,7 @@ declare module Manifesto {
         getTotalSequences(): number;
         getTree(): TreeNode;
         getManifestType(): ManifestType;
+        getViewingDirection(): Manifesto.ViewingDirection;
         isMultiSequence(): boolean;
         rootRange: IRange;
     }
@@ -509,8 +515,8 @@ interface IManifesto {
     getTreeNode(): Manifesto.TreeNode;
     IIIFResourceType: Manifesto.IIIFResourceType;
     isImageProfile(profile: Manifesto.ServiceProfile): boolean;
-    loadExternalResources: (resources: Manifesto.IExternalResource[], clickThrough: (resource: Manifesto.IExternalResource) => Promise<void>, login: (resource: Manifesto.IExternalResource) => Promise<void>, getAccessToken: (resource: Manifesto.IExternalResource) => Promise<Manifesto.IAccessToken>, storeAccessToken: (resource: Manifesto.IExternalResource, token: Manifesto.IAccessToken) => Promise<void>, getStoredAccessToken: (resource: Manifesto.IExternalResource) => Promise<Manifesto.IAccessToken>, handleResourceResponse: (resource: Manifesto.IExternalResource) => Promise<any>, options?: Manifesto.IManifestoOptions) => Promise<Manifesto.IExternalResource[]>;
-    loadManifest: (uri: string) => Promise<any>;
+    loadExternalResources: (resources: Manifesto.IExternalResource[], tokenStorageStrategy: string, clickThrough: (resource: Manifesto.IExternalResource) => Promise<void>, login: (resource: Manifesto.IExternalResource) => Promise<void>, getAccessToken: (resource: Manifesto.IExternalResource) => Promise<Manifesto.IAccessToken>, storeAccessToken: (resource: Manifesto.IExternalResource, token: Manifesto.IAccessToken, tokenStorageStrategy: string) => Promise<void>, getStoredAccessToken: (resource: Manifesto.IExternalResource, tokenStorageStrategy: string) => Promise<Manifesto.IAccessToken>, handleResourceResponse: (resource: Manifesto.IExternalResource) => Promise<any>, options?: Manifesto.IManifestoOptions) => Promise<Manifesto.IExternalResource[]>;
+    loadManifest: (uri: string) => Promise<string>;
     ManifestType: Manifesto.ManifestType;
     RenderingFormat: Manifesto.RenderingFormat;
     ResourceFormat: Manifesto.ResourceFormat;
@@ -592,5 +598,7 @@ declare module Manifesto {
         getType(): ResourceType;
         getWidth(): number;
         getHeight(): number;
+        getMaxWidth(): number;
+        getMaxHeight(): number;
     }
 }

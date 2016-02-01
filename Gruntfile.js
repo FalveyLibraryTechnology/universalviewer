@@ -223,8 +223,8 @@ module.exports = function (grunt) {
                             'extensions/dist/extensions.js',
                             'http-status-codes/dist/http-status-codes.js',
                             'jquery-plugins/dist/jquery-plugins.js',
+                            'key-codes/dist/key-codes.js',
                             'lodash-compat/lodash.min.js',
-                            'manifesto/dist/client/manifesto.js',
                             'Units/Length.min.js',
                             'utils/dist/utils.js'
                         ],
@@ -240,10 +240,47 @@ module.exports = function (grunt) {
                             'extensions/typings/extensions.d.ts',
                             'http-status-codes/dist/http-status-codes.d.ts',
                             'jquery-plugins/typings/jquery-plugins.d.ts',
+                            'key-codes/dist/key-codes.d.ts',
                             'manifesto/dist/manifesto.d.ts',
                             'utils/dist/utils.d.ts'
                         ],
                         dest: '<%= config.dirs.typings %>'
+                    }
+                ]
+            },
+            npmComponents: {
+                files: [
+                    {
+                        // all js files that need to be copied from /node_modules to /src/lib post npm install
+                        cwd: '<%= config.dirs.npm %>',
+                        expand: true,
+                        flatten: true,
+                        src: [
+                            'manifesto.js/dist/client/manifesto.js'
+                        ],
+                        dest: '<%= config.dirs.lib %>'
+                    },
+                    {
+                        // all d.ts files that need to be copied from /node_modules to /src/typings post npm install
+                        cwd: '<%= config.dirs.npm %>',
+                        expand: true,
+                        flatten: true,
+                        src: [
+                            'manifesto.js/dist/manifesto.d.ts',
+                            'virtex3d/dist/virtex.d.ts'
+                        ],
+                        dest: '<%= config.dirs.typings %>'
+                    },
+                    {
+                        // all files that need to be copied from /node_modules to /src/extensions/uv-virtex-extension/lib post npm install
+                        cwd: '<%= config.dirs.npm %>',
+                        expand: true,
+                        flatten: true,
+                        src: [
+                            'virtex3d/dist/virtex.js',
+                            'three.js/build/three.min.js'
+                        ],
+                        dest: '<%= config.dirs.uvVirtexExtension %>/lib'
                     }
                 ]
             }

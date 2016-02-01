@@ -1,3 +1,4 @@
+import BaseCommands = require("../../modules/uv-shared-module/BaseCommands");
 import BaseEmbedDialogue = require("../../modules/uv-dialogues-module/EmbedDialogue");
 import Commands = require("./Commands");
 import ISeadragonExtension = require("./ISeadragonExtension");
@@ -10,11 +11,11 @@ class EmbedDialogue extends BaseEmbedDialogue {
         super($element);
 
         $.subscribe(Commands.SEADRAGON_OPEN, (viewer) => {
-            this.formatCode();
+            this.update();
         });
 
         $.subscribe(Commands.SEADRAGON_ANIMATION_FINISH, (viewer) => {
-            this.formatCode();
+            this.update();
         });
     }
 
@@ -23,7 +24,9 @@ class EmbedDialogue extends BaseEmbedDialogue {
         super.create();
     }
 
-    formatCode(): void {
+    update(): void {
+
+        super.update();
 
         var zoom = (<ISeadragonExtension>this.extension).getViewerBounds();
         var rotation = (<ISeadragonExtension>this.extension).getViewerRotation();

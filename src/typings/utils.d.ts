@@ -1,4 +1,9 @@
 declare module Utils {
+    class Async {
+        static WaitFor(test: () => boolean, successCallback: () => void, failureCallback?: () => void, interval?: number, maxTries?: number, numTries?: number): void;
+    }
+}
+declare module Utils {
     class Bools {
         static GetBool(val: any, defaultVal: boolean): boolean;
     }
@@ -1405,13 +1410,24 @@ declare module Utils {
     }
 }
 declare module Utils {
+    class Device {
+        static GetPixelRatio(ctx: CanvasRenderingContext2D): number;
+    }
+}
+declare module Utils {
     class Documents {
         static IsInIFrame(): boolean;
+        static SupportsFullscreen(): boolean;
     }
 }
 declare module Utils {
     class Events {
         static Debounce(fn: any, debounceDuration: number): () => any;
+    }
+}
+declare module Utils {
+    class Keyboard {
+        static GetCharCode(e: KeyboardEvent): number;
     }
 }
 declare module Utils.Maths {
@@ -1458,6 +1474,35 @@ declare module Utils {
     }
 }
 declare module Utils {
+}
+declare module Utils {
+    class Storage {
+        private static _memoryStorage;
+        static clear(storageType?: StorageType): void;
+        static clearExpired(storageType?: StorageType): void;
+        static get(key: string, storageType?: StorageType): StorageItem;
+        private static _isExpired(item);
+        static getItems(storageType?: StorageType): StorageItem[];
+        static remove(key: string, storageType?: StorageType): void;
+        static set(key: string, value: any, expirationSecs: number, storageType?: StorageType): StorageItem;
+    }
+}
+declare module Utils {
+    class StorageItem {
+        key: string;
+        value: any;
+        expiresAt: number;
+    }
+}
+declare module Utils {
+    class StorageType {
+        value: string;
+        static memory: StorageType;
+        static session: StorageType;
+        static local: StorageType;
+        constructor(value: string);
+        toString(): string;
+    }
 }
 declare module Utils {
     class Strings {

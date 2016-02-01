@@ -13,8 +13,6 @@ import IProvider = require("./IProvider");
 import LoginDialogue = require("../../modules/uv-dialogues-module/LoginDialogue");
 import Params = require("../../Params");
 import Shell = require("./Shell");
-import Storage = require("../../modules/uv-shared-module/Storage");
-import StorageItem = require("../../modules/uv-shared-module/StorageItem");
 
 class BaseExtension implements IExtension {
 
@@ -42,6 +40,8 @@ class BaseExtension implements IExtension {
 
     public create(overrideDependencies?: any): void {
 
+        var that = this;
+
         this.$element = $('#app');
         this.$element.data("bootstrapper", this.bootstrapper);
 
@@ -67,7 +67,8 @@ class BaseExtension implements IExtension {
             bootstrapper: {
                 config: this.provider.bootstrapper.config,
                 params: this.provider.bootstrapper.params
-            }
+            },
+            preview: this.getSharePreview()
         });
 
         // add/remove classes.
@@ -118,69 +119,60 @@ class BaseExtension implements IExtension {
 
             $(document).on('keyup keydown', (e) => {
                 this.shifted = e.shiftKey;
-                this.tabbing = e.keyCode === 9;
+                this.tabbing = e.keyCode === KeyCodes.KeyDown.Tab;
             });
 
-            $(document).keyup((e) => {
+            $(document).keydown((e) => {
+
                 var event: string = null;
 
-                if (e.keyCode === 13) event = BaseCommands.RETURN;
-                if (e.keyCode === 27) event = BaseCommands.ESCAPE;
-                if (e.keyCode === 33) event = BaseCommands.PAGE_UP;
-                if (e.keyCode === 34) event = BaseCommands.PAGE_DOWN;
-                if (e.keyCode === 35) event = BaseCommands.END;
-                if (e.keyCode === 36) event = BaseCommands.HOME;
-                if (e.keyCode === 37) event = BaseCommands.LEFT_ARROW;
-                if (e.keyCode === 38) event = BaseCommands.UP_ARROW;
-                if (e.keyCode === 39) event = BaseCommands.RIGHT_ARROW;
-                if (e.keyCode === 40) event = BaseCommands.DOWN_ARROW;
+                if (e.keyCode === KeyCodes.KeyDown.Enter) event = BaseCommands.RETURN;
+                if (e.keyCode === KeyCodes.KeyDown.Escape) event = BaseCommands.ESCAPE;
+                if (e.keyCode === KeyCodes.KeyDown.PageUp) event = BaseCommands.PAGE_UP;
+                if (e.keyCode === KeyCodes.KeyDown.PageDown) event = BaseCommands.PAGE_DOWN;
+                if (e.keyCode === KeyCodes.KeyDown.End) event = BaseCommands.END;
+                if (e.keyCode === KeyCodes.KeyDown.Home) event = BaseCommands.HOME;
+                if (e.keyCode === KeyCodes.KeyDown.NumpadPlus || e.keyCode === 171 || e.keyCode === KeyCodes.KeyDown.Equals) event = BaseCommands.PLUS;
+                if (e.keyCode === KeyCodes.KeyDown.NumpadMinus || e.keyCode === 173 || e.keyCode === KeyCodes.KeyDown.Dash) event = BaseCommands.MINUS;
+
+                if (that.useArrowKeysToNavigate()) {
+                    if (e.keyCode === KeyCodes.KeyDown.LeftArrow) event = BaseCommands.LEFT_ARROW;
+                    if (e.keyCode === KeyCodes.KeyDown.UpArrow) event = BaseCommands.UP_ARROW;
+                    if (e.keyCode === KeyCodes.KeyDown.RightArrow) event = BaseCommands.RIGHT_ARROW;
+                    if (e.keyCode === KeyCodes.KeyDown.DownArrow) event = BaseCommands.DOWN_ARROW;
+                }
 
                 if (event){
                     e.preventDefault();
                     $.publish(event);
                 }
             });
-            
-            if (!this.useArrowKeysToNavigate()) {
-                $(document).keydown((e) => {
-                    //Prevent home, end, page up and page down from scrolling the window.
-                    if (e.keyCode === 33 || e.keyCode === 34 || e.keyCode === 35 || e.keyCode === 36)
-                        e.preventDefault();
-
-                    var event: string = null;
-
-                    if (e.keyCode === 37) event = BaseCommands.LEFT_ARROW;
-                    if (e.keyCode === 38) event = BaseCommands.UP_ARROW;
-                    if (e.keyCode === 39) event = BaseCommands.RIGHT_ARROW;
-                    if (e.keyCode === 40) event = BaseCommands.DOWN_ARROW;
-
-                    if (event) {
-                        e.preventDefault();
-                        $.publish(event);
-                    }
-                });
-            }
 
             if (this.bootstrapper.params.isHomeDomain && Utils.Documents.IsInIFrame()) {
-                $(parent.document).on('fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange', (e) => {
-                    if (e.type === 'webkitfullscreenchange' && !parent.document.webkitIsFullScreen ||
-                        e.type === 'mozfullscreenchange' && !parent.document.mozFullScreen ||
-                        e.type === 'MSFullscreenChange' && parent.document.msFullscreenElement === null) {
-                        if (this.isOverlayActive()) {
-                            $.publish(BaseCommands.ESCAPE);
-                        }
 
+                $.subscribe(BaseCommands.PARENT_EXIT_FULLSCREEN, () => {
+                    if (this.isOverlayActive()) {
                         $.publish(BaseCommands.ESCAPE);
-                        $.publish(BaseCommands.RESIZE);
                     }
+
+                    $.publish(BaseCommands.ESCAPE);
+                    $.publish(BaseCommands.RESIZE);
                 });
             }
         }
 
         this.$element.append('<a href="/" id="top"></a>');
 
+        $.subscribe(BaseCommands.ACCEPT_TERMS, () => {
+            this.triggerSocket(BaseCommands.ACCEPT_TERMS);
+        });
+
         $.subscribe(BaseCommands.AUTHORIZATION_OCCURRED, () => {
             this.triggerSocket(BaseCommands.AUTHORIZATION_OCCURRED);
+        });
+
+        $.subscribe(BaseCommands.BOOKMARK, () => {
+            this.bookmark();
         });
 
         $.subscribe(BaseCommands.CANVAS_INDEX_CHANGE_FAILED, () => {
@@ -228,7 +220,7 @@ class BaseExtension implements IExtension {
         $.subscribe(BaseCommands.ESCAPE, () => {
             this.triggerSocket(BaseCommands.ESCAPE);
 
-            if (this.isFullScreen()) {
+            if (this.isFullScreen() && !this.isOverlayActive()) {
                 $.publish(BaseCommands.TOGGLE_FULLSCREEN);
             }
         });
@@ -255,6 +247,10 @@ class BaseExtension implements IExtension {
 
         $.subscribe(BaseCommands.HIDE_INFORMATION, () => {
             this.triggerSocket(BaseCommands.HIDE_INFORMATION);
+        });
+
+        $.subscribe(BaseCommands.HIDE_LOGIN_DIALOGUE, () => {
+            this.triggerSocket(BaseCommands.HIDE_LOGIN_DIALOGUE);
         });
 
         $.subscribe(BaseCommands.HIDE_OVERLAY, () => {
@@ -289,8 +285,20 @@ class BaseExtension implements IExtension {
             this.triggerSocket(BaseCommands.LEFTPANEL_EXPAND_FULL_START);
         });
 
+        $.subscribe(BaseCommands.EXTERNAL_LINK_CLICKED, (e, url) => {
+            this.triggerSocket(BaseCommands.EXTERNAL_LINK_CLICKED, url);
+        });
+
         $.subscribe(BaseCommands.NOT_FOUND, () => {
             this.triggerSocket(BaseCommands.NOT_FOUND);
+        });
+
+        $.subscribe(BaseCommands.OPEN, () => {
+            this.triggerSocket(BaseCommands.OPEN);
+
+            var openUri: string = String.format(this.provider.config.options.openTemplate, this.provider.manifestUri);
+
+            window.open(openUri);
         });
 
         $.subscribe(BaseCommands.OPEN_LEFT_PANEL, () => {
@@ -397,16 +405,14 @@ class BaseExtension implements IExtension {
         });
 
         $.subscribe(BaseCommands.TOGGLE_FULLSCREEN, () => {
-            if (!this.isOverlayActive()){
-                $('#top').focus();
-                this.bootstrapper.isFullScreen = !this.bootstrapper.isFullScreen;
+            $('#top').focus();
+            this.bootstrapper.isFullScreen = !this.bootstrapper.isFullScreen;
 
-                this.triggerSocket(BaseCommands.TOGGLE_FULLSCREEN,
-                    {
-                        isFullScreen: this.bootstrapper.isFullScreen,
-                        overrideFullScreen: this.provider.config.options.overrideFullScreen
-                    });
-            }
+            this.triggerSocket(BaseCommands.TOGGLE_FULLSCREEN,
+                {
+                    isFullScreen: this.bootstrapper.isFullScreen,
+                    overrideFullScreen: this.provider.config.options.overrideFullScreen
+                });
         });
 
         $.subscribe(BaseCommands.UP_ARROW, () => {
@@ -559,8 +565,31 @@ class BaseExtension implements IExtension {
                 case BaseCommands.TOGGLE_FULLSCREEN:
                     $.publish(BaseCommands.TOGGLE_FULLSCREEN, message.eventObject);
                     break;
+                case BaseCommands.PARENT_EXIT_FULLSCREEN:
+                    $.publish(BaseCommands.PARENT_EXIT_FULLSCREEN);
+                    break;
             }
         }, 1000);
+    }
+
+    getSharePreview(): any {
+        var preview: any = {};
+
+        preview.title = this.provider.getTitle();
+
+        // todo: use getThumb (when implemented)
+
+        var canvas: Manifesto.ICanvas = this.provider.getCurrentCanvas();
+
+        var thumbnail = canvas.getProperty('thumbnail');
+
+        if (!thumbnail || !_.isString(thumbnail)){
+            thumbnail = canvas.getThumbUri(this.provider.config.options.bookmarkThumbWidth, this.provider.config.options.bookmarkThumbHeight);
+        }
+
+        preview.image = thumbnail;
+
+        return preview;
     }
 
     getExternalResources(resources?: Manifesto.IExternalResource[]): Promise<Manifesto.IExternalResource[]> {
@@ -588,9 +617,12 @@ class BaseExtension implements IExtension {
             }
         });
 
+        var storageStrategy: string = this.provider.config.options.tokenStorage;
+
         return new Promise<Manifesto.IExternalResource[]>((resolve) => {
             manifesto.loadExternalResources(
                 resourcesToLoad,
+                storageStrategy,
                 this.clickThrough,
                 this.login,
                 this.getAccessToken,
@@ -699,6 +731,22 @@ class BaseExtension implements IExtension {
         return Utils.Bools.GetBool(this.provider.config.options.useArrowKeysToNavigate, true);
     }
 
+    bookmark(): void {
+        // override for each extension
+    }
+
+    getBookmarkUri(): string {
+        var absUri = parent.document.URL;
+        var parts = Utils.Urls.GetUrlParts(absUri);
+        var relUri = parts.pathname + parts.search + parent.document.location.hash;
+
+        if (!relUri.startsWith("/")) {
+            relUri = "/" + relUri;
+        }
+
+        return relUri;
+    }
+
     // auth
 
     clickThrough(resource: Manifesto.IExternalResource): Promise<void> {
@@ -754,21 +802,21 @@ class BaseExtension implements IExtension {
         });
     }
 
-    storeAccessToken(resource: Manifesto.IExternalResource, token: Manifesto.IAccessToken): Promise<void> {
+    storeAccessToken(resource: Manifesto.IExternalResource, token: Manifesto.IAccessToken, storageStrategy: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            Storage.set(resource.tokenService.id, token, token.expiresIn);
+            Utils.Storage.set(resource.tokenService.id, token, token.expiresIn, new Utils.StorageType(storageStrategy));
             resolve();
         });
     }
 
-    getStoredAccessToken(resource: Manifesto.IExternalResource): Promise<Manifesto.IAccessToken> {
+    getStoredAccessToken(resource: Manifesto.IExternalResource, storageStrategy: string): Promise<Manifesto.IAccessToken> {
 
         return new Promise<Manifesto.IAccessToken>((resolve, reject) => {
 
             var foundToken: Manifesto.IAccessToken;
 
             // first try an exact match of the url
-            var item: StorageItem = Storage.get(resource.dataUri);
+            var item: storage.StorageItem = Utils.Storage.get(resource.dataUri, new Utils.StorageType(storageStrategy));
 
             if (item){
                 foundToken = item.value;
@@ -776,7 +824,7 @@ class BaseExtension implements IExtension {
                 // find an access token for the domain
                 var domain = Utils.Urls.GetUrlParts(resource.dataUri).hostname;
 
-                var items: StorageItem[] = Storage.getItems();
+                var items: storage.StorageItem[] = Utils.Storage.getItems(new Utils.StorageType(storageStrategy));
 
                 for(var i = 0; i < items.length; i++) {
                     item = items[i];

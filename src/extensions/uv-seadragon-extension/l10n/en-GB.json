@@ -23,7 +23,7 @@
     },
     "downloadDialogue": {
       "content": {
-        "currentViewAsJpg": "Current view (jpg)",
+        "currentViewAsJpg": "Current view {0} x {1}px (jpg)",
         "download": "Download",
         "editSettings": "Edit Settings",
         "entireDocument": "Entire document ({0})",
@@ -32,25 +32,27 @@
         "pagingNote": "Please turn off Two Page View for additional options.",
         "preview": "Preview",
         "title": "Download",
-        "wholeImageHighRes": "Whole image high res ({0})",
-        "wholeImageLowResAsJpg": "Whole image low res (jpg)"
+        "wholeImageHighRes": "Whole image {0} x {1}px ({2})",
+        "wholeImageLowResAsJpg": "Whole image {0} x {1}px (jpg)"
       }
     },
     "embedDialogue": {
       "content": {
         "customSize": "Custom Size",
         "height": "Height",
-        "instructions": "To embed this item in your own website, copy and paste the code below:",
-        "title": "Embed",
+        "instructions": "To embed this item in your own website, copy and paste the code below.",
+        "title": "Share",
         "width": "Width"
       }
     },
     "footerPanel": {
       "content": {
+        "bookmark": "Add to bookmarks",
         "download": "Download",
         "embed": "Embed",
         "exitFullScreen": "Exit Full Screen",
-        "fullScreen": "Full Screen"
+        "fullScreen": "Full Screen",
+        "open": "Open"
       }
     },
     "genericDialogue": {
@@ -77,17 +79,18 @@
     "moreInfoRightPanel": {
       "content": {
         "attribution": "Attribution",
-        "collapse": "Collapse More Information",
+        "collapse": "Collapse Information",
         "collapseFull": "Collapse Gallery",
         "description": "Description",
-        "expand": "Expand More Information",
+        "expand": "Expand Information",
         "expandFull": "Expand Gallery",
         "holdingText": "Your module goes here!",
         "less": "less",
         "license": "License",
+        "logo": "Logo",
         "more": "more",
         "noData": "No data to display",
-        "title": "More Information"
+        "title": "Information"
       }
     },
     "pagingHeaderPanel": {
@@ -133,9 +136,9 @@
     {
       "content":
       {
-        "clearSearch": "Clear Search",
+        "clearSearch": "Clear",
         "defaultLabel": "-",
-        "displaying": "Displaying {0} {1} of {2}",
+        "displaying": "{0} {1} of {2}",
         "enterKeyword": "Enter Keyword",
         "image": "image",
         "imageCaps": "Image",
@@ -153,6 +156,7 @@
     "settingsDialogue": {
       "content": {
         "locale": "Locale",
+        "navigatorEnabled": "Navigator Enabled",
         "pagingEnabled": "Two Page View",
         "preserveViewport": "Preserve Zoom",
         "title": "Settings",

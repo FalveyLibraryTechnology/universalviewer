@@ -7,6 +7,7 @@ require.config({
         'httpstatuscodes': 'lib/http-status-codes',
         'jquery': 'lib/jquery-1.10.2.min',
         'jsviews': 'lib/jsviews.min',
+        'keycodes': 'lib/key-codes',
         'l10n': 'lib/l10n',
         'length': 'lib/Length.min',
         'lodash': 'lib/lodash.min',
@@ -53,6 +54,8 @@ require([
     'extensions/uv-pdf-extension/Provider',
     'extensions/uv-seadragon-extension/Extension',
     'extensions/uv-seadragon-extension/Provider',
+    'extensions/uv-virtex-extension/Extension',
+    'extensions/uv-virtex-extension/Provider',
     'manifesto',
     'browserdetect',
     'ex',
@@ -60,6 +63,7 @@ require([
     'httpstatuscodes',
     'jquery',
     'jsviews',
+    'keycodes',
     'l10n',
     'length',
     'lodash',
@@ -80,6 +84,8 @@ require([
     pdfProvider,
     seadragonExtension,
     seadragonProvider,
+    virtexExtension,
+    virtexProvider,
     manifesto
     ) => {
 
@@ -100,6 +106,12 @@ require([
             type: mediaelementExtension,
             provider: mediaelementProvider,
             name: 'uv-mediaelement-extension'
+        };
+
+        extensions[manifesto.ElementType.physicalobject().toString()] = {
+            type: virtexExtension,
+            provider: virtexProvider,
+            name: 'uv-virtex-extension'
         };
 
         extensions[manifesto.ElementType.sound().toString()] = {

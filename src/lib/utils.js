@@ -1,5 +1,35 @@
 var Utils;
 (function (Utils) {
+    var Async = (function () {
+        function Async() {
+        }
+        Async.WaitFor = function (test, successCallback, failureCallback, interval, maxTries, numTries) {
+            if (!interval)
+                interval = 200;
+            if (!maxTries)
+                maxTries = 100; // try 100 times over 20 seconds
+            if (!numTries)
+                numTries = 0;
+            numTries += 1;
+            if (numTries > maxTries) {
+                if (failureCallback)
+                    failureCallback();
+            }
+            else if (test()) {
+                successCallback();
+            }
+            else {
+                setTimeout(function () {
+                    Async.WaitFor(test, successCallback, failureCallback, interval, maxTries, numTries);
+                }, interval);
+            }
+        };
+        return Async;
+    })();
+    Utils.Async = Async;
+})(Utils || (Utils = {}));
+var Utils;
+(function (Utils) {
     var Bools = (function () {
         function Bools() {
         }
@@ -18,11 +48,10 @@ var Utils;
 // Licensed under MIT open source license http://opensource.org/licenses/MIT
 //
 // Orginal javascript code was by Mauricio Santos
-var __extends = this.__extends || function (d, b) {
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 /**
  * @namespace Top level namespace for collections, a TypeScript data structure library.
@@ -2575,16 +2604,41 @@ var Utils;
 })(Utils || (Utils = {}));
 var Utils;
 (function (Utils) {
+    var Device = (function () {
+        function Device() {
+        }
+        Device.GetPixelRatio = function (ctx) {
+            var dpr = window.devicePixelRatio || 1;
+            var bsr = ctx.webkitBackingStorePixelRatio ||
+                ctx.mozBackingStorePixelRatio ||
+                ctx.msBackingStorePixelRatio ||
+                ctx.oBackingStorePixelRatio ||
+                ctx.backingStorePixelRatio || 1;
+            return dpr / bsr;
+        };
+        return Device;
+    })();
+    Utils.Device = Device;
+})(Utils || (Utils = {}));
+var Utils;
+(function (Utils) {
     var Documents = (function () {
         function Documents() {
         }
         Documents.IsInIFrame = function () {
+            // see http://stackoverflow.com/questions/326069/how-to-identify-if-a-webpage-is-being-loaded-inside-an-iframe-or-directly-into-t
             try {
                 return window.self !== window.top;
             }
             catch (e) {
                 return true;
             }
+        };
+        Documents.SupportsFullscreen = function () {
+            var doc = document.documentElement;
+            var support = doc.requestFullscreen || doc.mozRequestFullScreen ||
+                doc.webkitRequestFullScreen || doc.msRequestFullscreen;
+            return support != undefined;
         };
         return Documents;
     })();
@@ -2621,6 +2675,19 @@ var Utils;
         return Events;
     })();
     Utils.Events = Events;
+})(Utils || (Utils = {}));
+var Utils;
+(function (Utils) {
+    var Keyboard = (function () {
+        function Keyboard() {
+        }
+        Keyboard.GetCharCode = function (e) {
+            var charCode = (typeof e.which == "number") ? e.which : e.keyCode;
+            return charCode;
+        };
+        return Keyboard;
+    })();
+    Utils.Keyboard = Keyboard;
 })(Utils || (Utils = {}));
 var Utils;
 (function (Utils) {
@@ -2774,7 +2841,11 @@ var Utils;
         }
         Numbers.NumericalInput = function (event) {
             // Allow: backspace, delete, tab and escape
-            if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || (event.keyCode == 65 && event.ctrlKey === true) || (event.keyCode >= 35 && event.keyCode <= 39)) {
+            if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 ||
+                // Allow: Ctrl+A
+                (event.keyCode == 65 && event.ctrlKey === true) ||
+                // Allow: home, end, left, right
+                (event.keyCode >= 35 && event.keyCode <= 39)) {
                 // let it happen, don't do anything
                 return true;
             }
@@ -2790,6 +2861,161 @@ var Utils;
         return Numbers;
     })();
     Utils.Numbers = Numbers;
+})(Utils || (Utils = {}));
+var Utils;
+(function (Utils) {
+    var Storage = (function () {
+        function Storage() {
+        }
+        Storage.clear = function (storageType) {
+            if (storageType === void 0) { storageType = Utils.StorageType.memory; }
+            switch (storageType.value) {
+                case Utils.StorageType.memory.value:
+                    this._memoryStorage = {};
+                    break;
+                case Utils.StorageType.session.value:
+                    sessionStorage.clear();
+                    break;
+                case Utils.StorageType.local.value:
+                    localStorage.clear();
+                    break;
+            }
+        };
+        Storage.clearExpired = function (storageType) {
+            if (storageType === void 0) { storageType = Utils.StorageType.memory; }
+            var items = this.getItems(storageType);
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                if (this._isExpired(item)) {
+                    this.remove(item.key);
+                }
+            }
+        };
+        Storage.get = function (key, storageType) {
+            if (storageType === void 0) { storageType = Utils.StorageType.memory; }
+            var data;
+            switch (storageType.value) {
+                case Utils.StorageType.memory.value:
+                    data = this._memoryStorage[key];
+                    break;
+                case Utils.StorageType.session.value:
+                    data = sessionStorage.getItem(key);
+                    break;
+                case Utils.StorageType.local.value:
+                    data = localStorage.getItem(key);
+                    break;
+            }
+            if (!data)
+                return null;
+            var item = JSON.parse(data);
+            if (this._isExpired(item))
+                return null;
+            // useful reference
+            item.key = key;
+            return item;
+        };
+        Storage._isExpired = function (item) {
+            if (new Date().getTime() < item.expiresAt) {
+                return false;
+            }
+            return true;
+        };
+        Storage.getItems = function (storageType) {
+            if (storageType === void 0) { storageType = Utils.StorageType.memory; }
+            var items = [];
+            switch (storageType.value) {
+                case Utils.StorageType.memory.value:
+                    var keys = Object.keys(this._memoryStorage);
+                    for (var i = 0; i < keys.length; i++) {
+                        var item = this.get(keys[i], Utils.StorageType.memory);
+                        if (item) {
+                            items.push(item);
+                        }
+                    }
+                    break;
+                case Utils.StorageType.session.value:
+                    for (var i = 0; i < sessionStorage.length; i++) {
+                        var key = sessionStorage.key(i);
+                        var item = this.get(key, Utils.StorageType.session);
+                        if (item) {
+                            items.push(item);
+                        }
+                    }
+                    break;
+                case Utils.StorageType.local.value:
+                    for (var i = 0; i < localStorage.length; i++) {
+                        var key = localStorage.key(i);
+                        var item = this.get(key, Utils.StorageType.local);
+                        if (item) {
+                            items.push(item);
+                        }
+                    }
+                    break;
+            }
+            return items;
+        };
+        Storage.remove = function (key, storageType) {
+            if (storageType === void 0) { storageType = Utils.StorageType.memory; }
+            switch (storageType.value) {
+                case Utils.StorageType.memory.value:
+                    delete this._memoryStorage[key];
+                    break;
+                case Utils.StorageType.session.value:
+                    sessionStorage.removeItem(key);
+                    break;
+                case Utils.StorageType.local.value:
+                    localStorage.removeItem(key);
+                    break;
+            }
+        };
+        Storage.set = function (key, value, expirationSecs, storageType) {
+            if (storageType === void 0) { storageType = Utils.StorageType.memory; }
+            var expirationMS = expirationSecs * 1000;
+            var record = new Utils.StorageItem();
+            record.value = value;
+            record.expiresAt = new Date().getTime() + expirationMS;
+            switch (storageType.value) {
+                case Utils.StorageType.memory.value:
+                    this._memoryStorage[key] = JSON.stringify(record);
+                    break;
+                case Utils.StorageType.session.value:
+                    sessionStorage.setItem(key, JSON.stringify(record));
+                    break;
+                case Utils.StorageType.local.value:
+                    localStorage.setItem(key, JSON.stringify(record));
+                    break;
+            }
+            return record;
+        };
+        Storage._memoryStorage = {};
+        return Storage;
+    })();
+    Utils.Storage = Storage;
+})(Utils || (Utils = {}));
+var Utils;
+(function (Utils) {
+    var StorageItem = (function () {
+        function StorageItem() {
+        }
+        return StorageItem;
+    })();
+    Utils.StorageItem = StorageItem;
+})(Utils || (Utils = {}));
+var Utils;
+(function (Utils) {
+    var StorageType = (function () {
+        function StorageType(value) {
+            this.value = value;
+        }
+        StorageType.prototype.toString = function () {
+            return this.value;
+        };
+        StorageType.memory = new StorageType("memory");
+        StorageType.session = new StorageType("session");
+        StorageType.local = new StorageType("local");
+        return StorageType;
+    })();
+    Utils.StorageType = StorageType;
 })(Utils || (Utils = {}));
 var Utils;
 (function (Utils) {
@@ -2868,6 +3094,7 @@ var Utils;
                 kvp.shift();
             var i = kvp.length;
             var x;
+            // replace if already present.
             while (i--) {
                 x = kvp[i].split('=');
                 if (x[0] == key) {

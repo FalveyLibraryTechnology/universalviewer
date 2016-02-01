@@ -18,11 +18,14 @@ class DownloadDialogue extends Dialogue {
 
         super.create();
 
-        $.subscribe(BaseCommands.SHOW_DOWNLOAD_DIALOGUE, (e, params) => {
+        this.openCommand = BaseCommands.SHOW_DOWNLOAD_DIALOGUE;
+        this.closeCommand = BaseCommands.HIDE_DOWNLOAD_DIALOGUE;
+
+        $.subscribe(this.openCommand, (e, params) => {
             this.open();
         });
 
-        $.subscribe(BaseCommands.HIDE_DOWNLOAD_DIALOGUE, (e) => {
+        $.subscribe(this.closeCommand, (e) => {
             this.close();
         });
 
@@ -40,8 +43,7 @@ class DownloadDialogue extends Dialogue {
         this.$element.hide();
     }
 
-    simplifyMimeType(mime: string)
-    {
+    simplifyMimeType(mime: string) {
         switch (mime) {
         case 'text/plain':
             return 'txt';
@@ -83,10 +85,14 @@ class DownloadDialogue extends Dialogue {
         return false;
     }
 
+    close(): void {
+        super.close();
+    }
+
     resize(): void {
 
         this.$element.css({
-            'top': this.extension.height() - this.$element.outerHeight(true)
+            'top': Math.floor(this.extension.height() - this.$element.outerHeight(true))
         });
     }
 }

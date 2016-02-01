@@ -1,4 +1,5 @@
 interface ISettings {
-    pagingEnabled: boolean;
-    preserveViewport: boolean;
+    navigatorEnabled?: boolean;
+    pagingEnabled?: boolean;
+    preserveViewport?: boolean;
 }

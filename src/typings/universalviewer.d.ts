@@ -1,3 +1,4 @@
+
 interface HTMLElement{
     ontouchstart: any;
 }
@@ -34,9 +35,11 @@ declare var PDFObject: any;
 declare var yepnope: any;
 declare var PDFJS: any;
 declare var Sanitize: any;
+declare var virtex: IVirtex;
 
 // app
 interface Window{
+    configExtensionCallback: any;
     manifestCallback: any;
     manifesto: IManifesto;
     browserDetect: any;

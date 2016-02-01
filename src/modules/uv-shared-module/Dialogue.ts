@@ -6,6 +6,8 @@ class Dialogue extends BaseView {
     allowClose: boolean = true;
     isActive: boolean = false;
     isUnopened: boolean = true;
+    openCommand: string;
+    closeCommand: string;
     returnFunc: any;
 
     $bottom: JQuery;
@@ -108,20 +110,21 @@ class Dialogue extends BaseView {
     }
 
     close(): void {
-        if (this.isActive) {
-            this.$element.hide();
-            this.isActive = false;
+        if (!this.isActive) return;
 
-            $.publish(Commands.HIDE_OVERLAY);
-        }
+        this.$element.hide();
+        this.isActive = false;
+
+        $.publish(this.closeCommand);
+        $.publish(Commands.HIDE_OVERLAY);
     }
 
     resize(): void {
         super.resize();
 
         this.$element.css({
-            'top': (this.extension.height() / 2) - (this.$element.height() / 2),
-            'left': (this.extension.width() / 2) - (this.$element.width() / 2)
+            'top': Math.floor((this.extension.height() / 2) - (this.$element.height() / 2)),
+            'left': Math.floor((this.extension.width() / 2) - (this.$element.width() / 2))
         });
     }
 }

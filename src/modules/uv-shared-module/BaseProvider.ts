@@ -1,9 +1,10 @@
 import BootstrapParams = require("../../BootstrapParams");
 import BootStrapper = require("../../Bootstrapper");
 import ExternalResource = require("./ExternalResource");
+import IMetadataItem = require("./IMetadataItem");
 import IProvider = require("./IProvider");
 import Params = require("../../Params");
-import Storage = require("./Storage");
+import UriLabeller = require("./UriLabeller");
 
 // providers contain methods that could be implemented differently according
 // to factors like varying back end data provisioning systems.
@@ -23,6 +24,7 @@ class BaseProvider implements IProvider{
     isOnlyInstance: boolean;
     isReload: boolean;
     jsonp: boolean;
+    licenseFormatter: UriLabeller;
     locale: string;
     locales: any[];
     manifest: Manifesto.IManifest;
@@ -62,6 +64,8 @@ class BaseProvider implements IProvider{
         this.manifestIndex = this.bootstrapper.params.manifestIndex;
         this.sequenceIndex = this.bootstrapper.params.sequenceIndex;
         this.canvasIndex = this.bootstrapper.params.canvasIndex;
+
+        this.licenseFormatter = new UriLabeller(this.config.license ? this.config.license : {});
     }
 
     // re-bootstraps the application with new querystring params
@@ -324,37 +328,52 @@ class BaseProvider implements IProvider{
         return this.embedDomain;
     }
 
-    getMetadata(): any{
+    getMetadata(): IMetadataItem[] {
+        var result: IMetadataItem[] = [];
+
         var metadata = this.manifest.getMetadata();
 
+        if (metadata){
+            result.push(<IMetadataItem>{
+                label: "metadata",
+                value: metadata,
+                isRootLevel: true
+            });
+        }
+
         if (this.manifest.getDescription()){
-            metadata.unshift({
-                "label": "description",
-                "value": this.manifest.getDescription()
+            result.push(<IMetadataItem>{
+                label: "description",
+                value: this.manifest.getDescription(),
+                isRootLevel: true
             });
         }
 
         if (this.manifest.getAttribution()){
-            metadata.unshift({
-                "label": "attribution",
-                "value": this.manifest.getAttribution()
+            result.push(<IMetadataItem>{
+                label: "attribution",
+                value: this.manifest.getAttribution(),
+                isRootLevel: true
             });
         }
 
         if (this.manifest.getLicense()){
-            metadata.unshift({
-                "label": "license",
-                "value": this.manifest.getLicense()
+            result.push(<IMetadataItem>{
+                label: "license",
+                value: this.licenseFormatter.format(this.manifest.getLicense()),
+                isRootLevel: true
             });
         }
 
         if (this.manifest.getLogo()){
-            metadata.push({
-                "label": "logo",
-                "value": '<img src="' + this.manifest.getLogo() + '"/>'});
+            result.push(<IMetadataItem>{
+                label: "logo",
+                value: '<img src="' + this.manifest.getLogo() + '"/>',
+                isRootLevel: true
+            });
         }
 
-        return metadata;
+        return result;
     }
 
     defaultToThumbsView(): boolean{
@@ -380,11 +399,27 @@ class BaseProvider implements IProvider{
     }
 
     getSettings(): ISettings {
+        if (Utils.Bools.GetBool(this.config.options.saveUserSettings, false)) {
+            var settings = Utils.Storage.get("uv.settings", Utils.StorageType.local);
+            
+            if (settings)
+                return $.extend(this.config.options, settings.value);
+        }
+        
         return this.config.options;
     }
 
     updateSettings(settings: ISettings): void {
-        this.config.options = settings;
+        if (Utils.Bools.GetBool(this.config.options.saveUserSettings, false)) {
+            var storedSettings = Utils.Storage.get("uv.settings", Utils.StorageType.local);
+            if (storedSettings)
+                settings = $.extend(storedSettings.value, settings);
+                
+            //store for ten years
+            Utils.Storage.set("uv.settings", settings, 315360000, Utils.StorageType.local);
+        }
+        
+        this.config.options = $.extend(this.config.options, settings);
     }
 
     sanitize(html: string): string {
@@ -421,6 +456,7 @@ class BaseProvider implements IProvider{
         // if items contains sort item, add it to results.
         // if sort item has a label, substitute it
         // mark item as added.
+        // if limitLocales is disabled,
         // loop through remaining items and add to results.
 
         _.each(sorting, (sortItem: any) => {
@@ -433,12 +469,16 @@ class BaseProvider implements IProvider{
             }
         });
 
-        _.each(items, (item: any) => {
-            if (!item.added){
-                result.push(item);
-            }
-            delete item.added;
-        });
+        var limitLocales: boolean = Utils.Bools.GetBool(this.config.options.limitLocales, false);
+
+        if (!limitLocales){
+            _.each(items, (item: any) => {
+                if (!item.added){
+                    result.push(item);
+                }
+                delete item.added;
+            });
+        }
 
         return this.locales = result;
     }

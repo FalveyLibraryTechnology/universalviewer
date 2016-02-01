@@ -324,19 +324,26 @@ var Manifesto;
         function ElementType() {
             _super.apply(this, arguments);
         }
-        // todo: Should IIIFIMAGE go here?
         // todo: use getters when ES3 target is no longer required.
         ElementType.prototype.document = function () {
             return new ElementType(ElementType.DOCUMENT.toString());
         };
+        ElementType.prototype.image = function () {
+            return new ElementType(ElementType.IMAGE.toString());
+        };
         ElementType.prototype.movingimage = function () {
             return new ElementType(ElementType.MOVINGIMAGE.toString());
+        };
+        ElementType.prototype.physicalobject = function () {
+            return new ElementType(ElementType.PHYSICALOBJECT.toString());
         };
         ElementType.prototype.sound = function () {
             return new ElementType(ElementType.SOUND.toString());
         };
         ElementType.DOCUMENT = new ElementType("foaf:document");
+        ElementType.IMAGE = new ElementType("dcTypes:image");
         ElementType.MOVINGIMAGE = new ElementType("dctypes:movingimage");
+        ElementType.PHYSICALOBJECT = new ElementType("dctypes:physicalobject");
         ElementType.SOUND = new ElementType("dctypes:sound");
         return ElementType;
     })(Manifesto.StringValue);
@@ -630,6 +637,8 @@ var Manifesto;
         };
         ManifestResource.prototype.getMetadata = function () {
             var metadata = this.getProperty('metadata');
+            if (!metadata)
+                return [];
             // get localised value for each metadata item.
             for (var i = 0; i < metadata.length; i++) {
                 var item = metadata[i];
@@ -638,13 +647,42 @@ var Manifesto;
             }
             return metadata;
         };
-        // todo: once UV download menu uses manifesto parsed objects, this can be moved back from Utils
         ManifestResource.prototype.getRendering = function (format) {
-            return Manifesto.Utils.getRendering(this, format);
+            var renderings = this.getRenderings();
+            // normalise format to string
+            if (typeof format !== 'string') {
+                format = format.toString();
+            }
+            for (var i = 0; i < renderings.length; i++) {
+                var rendering = renderings[i];
+                if (rendering.getFormat().toString() === format) {
+                    return rendering;
+                }
+            }
+            return null;
         };
-        // todo: once UV download menu uses manifesto parsed objects, this can be moved back from Utils
         ManifestResource.prototype.getRenderings = function () {
-            return Manifesto.Utils.getRenderings(this);
+            var rendering;
+            // if passing a manifesto-parsed object, use the __jsonld.rendering property,
+            // otherwise look for a rendering property
+            if (this.__jsonld) {
+                rendering = this.__jsonld.rendering;
+            }
+            else {
+                rendering = this.rendering;
+            }
+            var renderings = [];
+            if (!rendering)
+                return renderings;
+            // coerce to array
+            if (!_isArray(rendering)) {
+                rendering = [rendering];
+            }
+            for (var i = 0; i < rendering.length; i++) {
+                var r = rendering[i];
+                renderings.push(new Manifesto.Rendering(r, this.options));
+            }
+            return renderings;
         };
         ManifestResource.prototype.getService = function (profile) {
             return Manifesto.Utils.getService(this, profile);
@@ -782,7 +820,12 @@ var Manifesto;
             return new Manifesto.IIIFResourceType(this.getProperty('@type'));
         };
         IIIFResource.prototype.getLogo = function () {
-            return this.getProperty('logo');
+            var logo = this.getProperty('logo');
+            if (!logo)
+                return null;
+            if (_isString(logo))
+                return logo;
+            return logo['@id'];
         };
         IIIFResource.prototype.getLicense = function () {
             return Manifesto.Utils.getLocalisedValue(this.getProperty('license'), this.options.locale);
@@ -831,6 +874,7 @@ var Manifesto;
         function Manifest(jsonld, options) {
             _super.call(this, jsonld, options);
             this.index = 0;
+            this.sequences = null;
             if (this.__jsonld.structures && this.__jsonld.structures.length) {
                 var r = this._getRootRange();
                 this._parseRanges(r, '');
@@ -912,17 +956,19 @@ var Manifesto;
             return null;
         };
         Manifest.prototype.getSequences = function () {
-            var sequences = [];
+            if (this.sequences != null)
+                return this.sequences;
+            this.sequences = [];
             // if IxIF mediaSequences is present, use that. Otherwise fall back to IIIF sequences.
             var children = this.__jsonld.mediaSequences || this.__jsonld.sequences;
             if (children) {
                 for (var i = 0; i < children.length; i++) {
                     var s = children[i];
                     var sequence = new Manifesto.Sequence(s, this.options);
-                    sequences.push(sequence);
+                    this.sequences.push(sequence);
                 }
             }
-            return sequences;
+            return this.sequences;
         };
         Manifest.prototype.getSequenceByIndex = function (sequenceIndex) {
             return this.getSequences()[sequenceIndex];
@@ -974,6 +1020,12 @@ var Manifesto;
         };
         Manifest.prototype.isMultiSequence = function () {
             return this.getTotalSequences() > 1;
+        };
+        Manifest.prototype.getViewingDirection = function () {
+            if (this.getProperty('viewingDirection')) {
+                return new Manifesto.ViewingDirection(this.getProperty('viewingDirection'));
+            }
+            return Manifesto.ViewingDirection.LEFTTORIGHT;
         };
         return Manifest;
     })(Manifesto.IIIFResource);
@@ -1092,19 +1144,22 @@ var Manifesto;
         __extends(Sequence, _super);
         function Sequence(jsonld, options) {
             _super.call(this, jsonld, options);
+            this.canvases = null;
         }
         Sequence.prototype.getCanvases = function () {
-            var canvases = [];
+            if (this.canvases != null)
+                return this.canvases;
+            this.canvases = [];
             // if IxIF elements are present, use them. Otherwise fall back to IIIF canvases.
             var children = this.__jsonld.elements || this.__jsonld.canvases;
             if (children) {
                 for (var i = 0; i < children.length; i++) {
                     var c = children[i];
                     var canvas = new Manifesto.Canvas(c, this.options);
-                    canvases.push(canvas);
+                    this.canvases.push(canvas);
                 }
             }
-            return canvases;
+            return this.canvases;
         };
         Sequence.prototype.getCanvasById = function (id) {
             for (var i = 0; i < this.getTotalCanvases(); i++) {
@@ -1272,6 +1327,9 @@ var Manifesto;
             if (this.getProperty('viewingDirection')) {
                 return new Manifesto.ViewingDirection(this.getProperty('viewingDirection'));
             }
+            else if (this.options.resource.getViewingDirection) {
+                return this.options.resource.getViewingDirection();
+            }
             return Manifesto.ViewingDirection.LEFTTORIGHT;
         };
         Sequence.prototype.getViewingHint = function () {
@@ -1391,6 +1449,9 @@ var Manifesto;
         }
         Service.prototype.getProfile = function () {
             var profile = this.getProperty('profile');
+            if (!profile) {
+                profile = this.getProperty('dcterms:conformsTo');
+            }
             if (_isArray(profile)) {
                 return new Manifesto.ServiceProfile(profile[0]);
             }
@@ -1523,7 +1584,7 @@ var Manifesto;
                 request.end();
             });
         };
-        Utils.loadExternalResource = function (resource, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options) {
+        Utils.loadExternalResource = function (resource, tokenStorageStrategy, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options) {
             return new Promise(function (resolve, reject) {
                 if (options && options.pessimisticAccessControl) {
                     // pessimistic: access control cookies may have been deleted.
@@ -1565,7 +1626,7 @@ var Manifesto;
                     // if cookies are deleted a page refresh is required.
                     // try loading the resource using an access token that matches the info.json domain.
                     // if an access token is found, request the resource using it regardless of whether it is access controlled.
-                    getStoredAccessToken(resource).then(function (storedAccessToken) {
+                    getStoredAccessToken(resource, tokenStorageStrategy).then(function (storedAccessToken) {
                         if (storedAccessToken) {
                             // try using the stored access token
                             resource.getData(storedAccessToken).then(function () {
@@ -1576,7 +1637,7 @@ var Manifesto;
                                 else {
                                     // otherwise, load the resource data to determine the correct access control services.
                                     // if access controlled, do login.
-                                    Utils.authorize(resource, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken).then(function () {
+                                    Utils.authorize(resource, tokenStorageStrategy, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken).then(function () {
                                         resolve(handleResourceResponse(resource));
                                     })["catch"](function (error) {
                                         reject(error);
@@ -1587,7 +1648,7 @@ var Manifesto;
                             });
                         }
                         else {
-                            Utils.authorize(resource, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken).then(function () {
+                            Utils.authorize(resource, tokenStorageStrategy, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken).then(function () {
                                 resolve(handleResourceResponse(resource));
                             })["catch"](function (error) {
                                 reject(error);
@@ -1599,10 +1660,10 @@ var Manifesto;
                 }
             });
         };
-        Utils.loadExternalResources = function (resources, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options) {
+        Utils.loadExternalResources = function (resources, tokenStorageStrategy, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options) {
             return new Promise(function (resolve, reject) {
                 var promises = _map(resources, function (resource) {
-                    return Utils.loadExternalResource(resource, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options);
+                    return Utils.loadExternalResource(resource, tokenStorageStrategy, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options);
                 });
                 Promise.all(promises)
                     .then(function () {
@@ -1612,11 +1673,11 @@ var Manifesto;
                 });
             });
         };
-        Utils.authorize = function (resource, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken) {
+        Utils.authorize = function (resource, tokenStorageStrategy, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken) {
             return new Promise(function (resolve, reject) {
                 resource.getData().then(function () {
                     if (resource.isAccessControlled()) {
-                        getStoredAccessToken(resource).then(function (storedAccessToken) {
+                        getStoredAccessToken(resource, tokenStorageStrategy).then(function (storedAccessToken) {
                             if (storedAccessToken) {
                                 // try using the stored access token
                                 resource.getData(storedAccessToken).then(function () {
@@ -1637,7 +1698,7 @@ var Manifesto;
                                     // if the resource has a click through service, use that.
                                     clickThrough(resource).then(function () {
                                         getAccessToken(resource).then(function (accessToken) {
-                                            storeAccessToken(resource, accessToken).then(function () {
+                                            storeAccessToken(resource, accessToken, tokenStorageStrategy).then(function () {
                                                 resource.getData(accessToken).then(function () {
                                                     resolve(resource);
                                                 })["catch"](function (error) {
@@ -1655,7 +1716,7 @@ var Manifesto;
                                     // get an access token
                                     login(resource).then(function () {
                                         getAccessToken(resource).then(function (accessToken) {
-                                            storeAccessToken(resource, accessToken).then(function () {
+                                            storeAccessToken(resource, accessToken, tokenStorageStrategy).then(function () {
                                                 resource.getData(accessToken).then(function () {
                                                     resolve(resource);
                                                 })["catch"](function (error) {
@@ -1680,43 +1741,6 @@ var Manifesto;
                     }
                 });
             });
-        };
-        Utils.getRendering = function (resource, format) {
-            var renderings = this.getRenderings(resource);
-            // normalise format to string
-            if (typeof format !== 'string') {
-                format = format.toString();
-            }
-            for (var i = 0; i < renderings.length; i++) {
-                var rendering = renderings[i];
-                if (rendering.getFormat().toString() === format) {
-                    return rendering;
-                }
-            }
-            return null;
-        };
-        Utils.getRenderings = function (resource) {
-            var rendering;
-            // if passing a manifesto-parsed object, use the __jsonld.rendering property,
-            // otherwise look for a rendering property
-            if (resource.__jsonld) {
-                rendering = resource.__jsonld.rendering;
-            }
-            else {
-                rendering = resource.rendering;
-            }
-            var renderings = [];
-            if (!rendering)
-                return renderings;
-            // coerce to array
-            if (!_isArray(rendering)) {
-                rendering = [rendering];
-            }
-            for (var i = 0; i < rendering.length; i++) {
-                var r = rendering[i];
-                renderings.push(new Manifesto.Rendering(r, resource.options));
-            }
-            return renderings;
         };
         Utils.getService = function (resource, profile) {
             var services = this.getServices(resource);
@@ -1792,10 +1816,6 @@ module.exports = {
     create: function (manifest, options) {
         return Manifesto.Deserialiser.parse(manifest, options);
     },
-    // todo: deprecate this - temporary to enable current UV download menu
-    getRenderings: function (resource) {
-        return Manifesto.Utils.getRenderings(resource);
-    },
     getService: function (resource, profile) {
         return Manifesto.Utils.getService(resource, profile);
     },
@@ -1822,8 +1842,8 @@ module.exports = {
     },
     // todo: create hasServiceDescriptor
     // based on @profile and @type (or lack of) can the resource describe associated services?
-    loadExternalResources: function (resources, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options) {
-        return Manifesto.Utils.loadExternalResources(resources, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options);
+    loadExternalResources: function (resources, tokenStorageStrategy, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options) {
+        return Manifesto.Utils.loadExternalResources(resources, tokenStorageStrategy, clickThrough, login, getAccessToken, storeAccessToken, getStoredAccessToken, handleResourceResponse, options);
     },
     loadManifest: function (uri) {
         return Manifesto.Utils.loadResource(uri);
@@ -1896,6 +1916,17 @@ var Manifesto;
         };
         Resource.prototype.getHeight = function () {
             return this.getProperty('height');
+        };
+        Resource.prototype.getMaxWidth = function () {
+            return this.getProperty('maxWidth');
+        };
+        Resource.prototype.getMaxHeight = function () {
+            var maxHeight = this.getProperty('maxHeight');
+            // if a maxHeight hasn't been specified, default to maxWidth.
+            // maxWidth in essence becomes maxEdge
+            if (!maxHeight) {
+                return this.getMaxWidth();
+            }
         };
         return Resource;
     })(Manifesto.ManifestResource);

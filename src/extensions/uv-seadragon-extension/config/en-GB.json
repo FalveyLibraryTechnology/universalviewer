@@ -1,16 +1,23 @@
 {
   "options":
   {
+    "bookmarkThumbHeight": 150,
+    "bookmarkThumbWidth": 90,
     "leftPanelEnabled": true,
+    "limitLocales": false,
     "minWidthBreakPoint": 610,
+    "navigatorEnabled": true,
+    "openTemplate": "http://universalviewer.io?manifest={0}",
     "overrideFullScreen": false,
     "pagingEnabled": true,
     "pessimisticAccessControl": false,
     "preserveViewport": false,
     "rightPanelEnabled": true,
+    "saveUserSettings": false,
     "searchWithinEnabled": true,
     "theme": "uv-en-GB-theme",
-    "useArrowKeysToNavigate": true
+    "tokenStorage": "session",
+    "useArrowKeysToNavigate": false
   },
   "modules":
   {
@@ -20,7 +27,8 @@
     {
       "options":
       {
-        "confinedImageSize": 1000
+        "confinedImageSize": 1000,
+        "maxImageWidth": 1000
       }
     },
     "embedDialogue":
@@ -33,10 +41,12 @@
     "footerPanel":
     {
       "options":{
+        "bookmarkEnabled": false,
         "downloadEnabled": true,
         "embedEnabled": true,
         "fullscreenEnabled": true,
-        "minimiseButtons": false
+        "minimiseButtons": true,
+        "openEnabled": false
       }
     },
     "genericDialogue":
@@ -49,6 +59,8 @@
     {
       "options":
       {
+        "displayOrder": "",
+        "exclude": "",
         "panelAnimationDuration": 250,
         "panelCollapsedWidth": 30,
         "panelExpandedWidth": 255,
@@ -61,6 +73,7 @@
     {
       "options":
       {
+        "imageSelectionBoxEnabled": false,
         "localeToggleEnabled": false,
         "pageModeEnabled": true,
         "pagingToggleEnabled": true
@@ -70,21 +83,21 @@
     {
       "options":
       {
+        "animationTime": 0.15,
+        "autoHideControls": true,
+        "blendTime": 0,
+        "constrainDuringPan": false,
         "controlsFadeAfterInactive": 1500,
         "controlsFadeDelay": 250,
         "controlsFadeLength": 250,
         "defaultZoomLevel": 0,
+        "immediateRender": false,
+        "maxZoomLevel": 8,
         "navigatorPosition": "BOTTOM_RIGHT",
         "pageGap": 0.01,
+        "showHomeControl": false,
         "trimAttributionCount": 150,
-        "showNavigator": true,
-        "animationTime": 1.2,
-        "visibilityRatio": 0.5,
-        "constrainDuringPan": false,
-        "immediateRender": false,
-        "maxZoomLevel": null,
-        "blendTime": 0,
-        "autoHideControls": true
+        "visibilityRatio": 0.5
       }
     },
     "searchFooterPanel":
@@ -103,6 +116,7 @@
       "options":
       {
         "elideCount": 40,
+        "expandFullEnabled": true,
         "galleryThumbHeight": 320,
         "galleryThumbWidth": 200,
         "oneColThumbHeight": 320,
@@ -112,6 +126,7 @@
         "panelCollapsedWidth": 30,
         "panelExpandedWidth": 255,
         "panelOpen": true,
+        "tabOrder": "",
         "thumbsEnabled": true,
         "thumbsExtraHeight": 8,
         "thumbsImageFadeInDuration": 300,
