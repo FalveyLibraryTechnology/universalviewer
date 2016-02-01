@@ -30,7 +30,8 @@
     "http://creativecommons.org/licenses/by-nc-nd/4.0/": "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International (CC BY-NC-ND 4.0)",
     "http://creativecommons.org/licenses/by-nd/4.0/": "Creative Commons Attribution-NoDerivs 4.0 International (CC BY-ND 4.0)",
     "http://creativecommons.org/licenses/by-nc-sa/4.0/": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
-    "http://creativecommons.org/licenses/by-sa/4.0/": "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)"
+    "http://creativecommons.org/licenses/by-sa/4.0/": "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)",
+    "http://digital.library.villanova.edu/copyright.html": "Villanova University Copyright"
   },
   "modules": {
     "dialogue": {
