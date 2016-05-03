@@ -18,8 +18,7 @@ import Provider = require("./Provider");
 import RightPanel = require("../../modules/uv-shared-module/RightPanel");
 import SettingsDialogue = require("./SettingsDialogue");
 import Shell = require("../../modules/uv-shared-module/Shell");
-import ThumbsView = require("../../modules/uv-treeviewleftpanel-module/ThumbsView");
-import TreeViewLeftPanel = require("../../modules/uv-treeviewleftpanel-module/TreeViewLeftPanel");
+import ResourcesLeftPanel = require("../../modules/uv-resourcesleftpanel-module/ResourcesLeftPanel");
 
 class Extension extends BaseExtension{
 
@@ -32,7 +31,7 @@ class Extension extends BaseExtension{
     embedDialogue: EmbedDialogue;
     footerPanel: FooterPanel;
     headerPanel: HeaderPanel;
-    leftPanel: TreeViewLeftPanel;
+    leftPanel: ResourcesLeftPanel;
     rightPanel: MoreInfoRightPanel;
     settingsDialogue: SettingsDialogue;
 
@@ -85,7 +84,7 @@ class Extension extends BaseExtension{
         this.headerPanel = new HeaderPanel(Shell.$headerPanel);
 
         if (this.isLeftPanelEnabled()){
-            this.leftPanel = new TreeViewLeftPanel(Shell.$leftPanel);
+            this.leftPanel = new ResourcesLeftPanel(Shell.$leftPanel);
         }
 
         this.centerPanel = new PDFCenterPanel(Shell.$centerPanel);
@@ -127,7 +126,8 @@ class Extension extends BaseExtension{
         bookmark.label = canvas.getLabel();
         bookmark.path = this.getBookmarkUri();
         bookmark.thumb = canvas.getProperty('thumbnail');
-        bookmark.title = this.provider.getTitle();
+        bookmark.title = this.provider.getLabel();
+        bookmark.trackingLabel = window.trackingLabel;
         bookmark.type = manifesto.ElementType.document().toString();
 
         this.triggerSocket(BaseCommands.BOOKMARK, bookmark);

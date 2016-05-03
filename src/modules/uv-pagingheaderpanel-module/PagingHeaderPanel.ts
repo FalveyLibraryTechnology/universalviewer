@@ -1,13 +1,16 @@
+import AutoComplete = require("../uv-shared-module/AutoComplete");
 import BaseCommands = require("../uv-shared-module/BaseCommands");
 import Commands = require("../../extensions/uv-seadragon-extension/Commands");
 import HeaderPanel = require("../uv-shared-module/HeaderPanel");
 import HelpDialogue = require("../uv-dialogues-module/HelpDialogue");
 import ISeadragonExtension = require("../../extensions/uv-seadragon-extension/ISeadragonExtension");
 import Mode = require("../../extensions/uv-seadragon-extension/Mode");
+import ISeadragonProvider = require("../../extensions/uv-seadragon-extension/ISeadragonProvider");
 
 class PagingHeaderPanel extends HeaderPanel {
 
     $firstButton: JQuery;
+    $autoCompleteBox: JQuery;
     $imageModeLabel: JQuery;
     $imageModeOption: JQuery;
     $lastButton: JQuery;
@@ -16,6 +19,7 @@ class PagingHeaderPanel extends HeaderPanel {
     $nextOptions: JQuery;
     $pageModeLabel: JQuery;
     $pageModeOption: JQuery;
+    $pagingToggleButton: JQuery;
     $prevButton: JQuery;
     $prevOptions: JQuery;
     $selectionBoxOptions: JQuery;
@@ -46,6 +50,7 @@ class PagingHeaderPanel extends HeaderPanel {
 
         $.subscribe(BaseCommands.SETTINGS_CHANGED, (e) => {
             this.modeChanged();
+            this.updatePagingToggle();
         });
 
         $.subscribe(BaseCommands.CANVAS_INDEX_CHANGE_FAILED, (e) => {
@@ -80,7 +85,45 @@ class PagingHeaderPanel extends HeaderPanel {
         this.$searchText = $('<input class="searchText" maxlength="50" type="text" tabindex="19"/>');
         this.$search.append(this.$searchText);
 
-        if (this.options.imageSelectionBoxEnabled === true) {
+        if (this.options.autoCompleteBoxEnabled === true) {
+            this.$searchText.hide();
+            this.$autoCompleteBox = $('<input class="autocompleteText" type="text" maxlength="100" />');
+            this.$search.append(this.$autoCompleteBox);
+
+            new AutoComplete(this.$autoCompleteBox,
+                (term: string, cb: (results: string[]) => void) => {
+                    var results: string[] = [];
+                    var canvases: Manifesto.ICanvas[] = this.provider.getCanvases();
+
+                    // if in page mode, get canvases by label.
+                    if (this.isPageModeEnabled()){
+                        for (var i = 0; i < canvases.length; i++){
+                            var canvas: Manifesto.ICanvas = canvases[i];
+                            if (canvas.getLabel().startsWith(term)){
+                                results.push(canvas.getLabel());
+                            }
+                        }
+                    } else {
+                        // get canvas by index
+                        for (var i = 0; i < canvases.length; i++){
+                            var canvas: Manifesto.ICanvas = canvases[i];
+                            if (canvas.index.toString().startsWith(term)){
+                                results.push(canvas.index.toString());
+                            }
+                        }
+                    }
+                    cb(results);
+                },
+                (results: any) => {
+                    return results;
+                },
+                (terms: string) => {
+                    this.search(terms);
+                },
+                300,
+                0
+            );
+        } else if (this.options.imageSelectionBoxEnabled === true) {
             this.$selectionBoxOptions = $('<div class="image-selectionbox-options"></div>');
             this.$centerOptions.append(this.$selectionBoxOptions);
             this.$imageSelectionBox = $('<select class="image-selectionbox" name="image-select" tabindex="20" ></select>');
@@ -88,7 +131,7 @@ class PagingHeaderPanel extends HeaderPanel {
 
             for (var imageIndex = 0; imageIndex < this.provider.getTotalCanvases(); imageIndex++) {
                 var canvas = this.provider.getCanvasByIndex(imageIndex);
-                var label = canvas.getLabel();
+                var label = this.provider.sanitize(canvas.getLabel());
                 this.$imageSelectionBox.append('<option value=' + (imageIndex) + '>' + label + '</option>')
             }
 
@@ -129,6 +172,19 @@ class PagingHeaderPanel extends HeaderPanel {
         } else {
             this.$pageModeLabel.text(this.content.page);
         }
+
+        this.$pagingToggleButton = $('<a class="imageBtn pagingToggle"></a>');
+        this.$rightOptions.prepend(this.$pagingToggleButton);
+
+        this.updatePagingToggle();
+
+        this.$pagingToggleButton.on('click', () => {
+            var enabled: boolean = !this.getSettings().pagingEnabled;
+
+            this.updateSettings({ pagingEnabled: enabled });
+
+            $.publish(Commands.PAGING_TOGGLED, [enabled]);
+        });
 
         this.setTitles();
 
@@ -196,7 +252,7 @@ class PagingHeaderPanel extends HeaderPanel {
 
         this.$searchText.onEnter(() => {
             this.$searchText.blur();
-            this.search();
+            this.search(this.$searchText.val());
         });
 
         this.$searchText.click(function() {
@@ -204,7 +260,11 @@ class PagingHeaderPanel extends HeaderPanel {
         });
 
         this.$searchButton.onPressed(() => {
-            this.search();
+            if (this.options.autoCompleteBoxEnabled){
+                this.search(this.$autoCompleteBox.val());
+            } else {
+                this.search(this.$searchText.val());
+            }
         });
 
         this.$lastButton.onPressed(() => {
@@ -224,7 +284,7 @@ class PagingHeaderPanel extends HeaderPanel {
         }
 
         //Search is shown as default
-        if (this.options.imageSelectionBoxEnabled === true){
+        if (this.options.imageSelectionBoxEnabled === true && this.options.autoCompleteBoxEnabled !== true){
             this.$search.hide();
         }
 
@@ -250,8 +310,11 @@ class PagingHeaderPanel extends HeaderPanel {
                     $elementWithGreatestTabIndex.focus();
                 }, 100);
             }
-        });        
-        
+        });
+
+        if (this.options.pagingToggleEnabled === false){
+            this.$pagingToggleButton.hide();
+        }
     }
 
     isPageModeEnabled(): boolean {
@@ -275,6 +338,27 @@ class PagingHeaderPanel extends HeaderPanel {
         this.$searchButton.prop('title', this.content.go);
     }
 
+    updatePagingToggle(): void {
+        if (!this.pagingToggleIsVisible()){
+            this.$pagingToggleButton.hide();
+            return;
+        }
+
+        if ((<ISeadragonProvider>this.provider).isPagingSettingEnabled()){
+            this.$pagingToggleButton.removeClass('two-up');
+            this.$pagingToggleButton.addClass('one-up');
+            this.$pagingToggleButton.prop('title', this.content.oneUp);
+        } else {
+            this.$pagingToggleButton.removeClass('one-up');
+            this.$pagingToggleButton.addClass('two-up');
+            this.$pagingToggleButton.prop('title', this.content.twoUp);
+        }
+    }
+
+    pagingToggleIsVisible(): boolean {
+        return this.options.pagingToggleEnabled && (<ISeadragonProvider>this.provider).isPagingAvailable();
+    }
+
     setTotal(): void {
 
         var of = this.content.of;
@@ -289,25 +373,30 @@ class PagingHeaderPanel extends HeaderPanel {
     setSearchFieldValue(index): void {
 
         var canvas = this.provider.getCanvasByIndex(index);
+        var value: string;
 
         if (this.isPageModeEnabled()) {
 
             var orderLabel = canvas.getLabel();
 
             if (orderLabel === "-") {
-                this.$searchText.val("");
+                value = "";
             } else {
-                this.$searchText.val(orderLabel);
+                value = orderLabel;
             }
         } else {
             index += 1;
-            this.$searchText.val(index);
+            value = index;
+        }
+
+        if (this.options.autoCompleteBoxEnabled){
+            this.$autoCompleteBox.val(value);
+        } else {
+            this.$searchText.val(value);
         }
     }
 
-    search(): void {
-
-        var value = this.$searchText.val();
+    search(value: string): void {
 
         if (!value) {
 
@@ -320,7 +409,13 @@ class PagingHeaderPanel extends HeaderPanel {
         if (this.isPageModeEnabled()) {
             $.publish(Commands.PAGE_SEARCH, [value]);
         } else {
-            var index = parseInt(this.$searchText.val(), 10);
+            var index: number;
+
+            if (this.options.autoCompleteBoxEnabled){
+                index = parseInt(this.$autoCompleteBox.val(), 10);
+            } else {
+                index = parseInt(this.$searchText.val(), 10);
+            }
 
             index -= 1;
 
@@ -345,7 +440,7 @@ class PagingHeaderPanel extends HeaderPanel {
     canvasIndexChanged(index): void {
         this.setSearchFieldValue(index);
 
-        if (this.options.imageSelectionBoxEnabled === true) {
+        if (this.options.imageSelectionBoxEnabled === true && this.options.autoCompleteBoxEnabled !== true) {
             this.$imageSelectionBox.val(index);
         }
 
@@ -414,6 +509,13 @@ class PagingHeaderPanel extends HeaderPanel {
 
     resize(): void {
         super.resize();
+
+        // hide toggle buttons below minimum width
+        if (this.extension.width() < this.provider.config.options.minWidthBreakPoint){
+            if (this.pagingToggleIsVisible()) this.$pagingToggleButton.hide();
+        } else {
+            if (this.pagingToggleIsVisible()) this.$pagingToggleButton.show();
+        }
     }
 }
 
