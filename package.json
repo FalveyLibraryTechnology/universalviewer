@@ -26,7 +26,7 @@
     "opencollective": "^1.0.3",
     "base-component": "iiif-commons/base-component#v1.0.8",
     "chalk": "^0.5.1",
-    "cucumber": "^0.4.5",
+    "cucumber": "^4.1.1",
     "eventemitter2": "^1.0.3",
     "exjs": "BSick7/exjs",
     "extensions": "edsilv/extensions#v0.1.11",
