@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/universalviewer/universalviewer",
   "devDependencies": {
-    "async": "^0.9.0"
+    "async": "^0.9.0",
+    "protractor-cucumber-framework": "^4.1.1"
   },
   "dependencies": {
     "opencollective": "^1.0.3",
@@ -70,4 +71,3 @@
     "logo": "https://opencollective.com/opencollective/logo.txt"
   }
 }
-
