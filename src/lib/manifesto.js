@@ -1,4 +1,4 @@
-// manifesto v2.2.11 https://github.com/iiif-commons/manifesto
+// manifesto v2.2.16 https://github.com/iiif-commons/manifesto
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.manifesto = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 (function (global){
 
@@ -1246,13 +1246,17 @@ var Manifesto;
             }
             // IxIF mediaSequences overrode sequences, so need to be checked first.
             // deprecate this when presentation 3 ships
-            var items = this.__jsonld.items || this.__jsonld.mediaSequences || this.__jsonld.sequences;
+            var items = this.__jsonld.mediaSequences || this.__jsonld.sequences;
             if (items) {
                 for (var i = 0; i < items.length; i++) {
                     var s = items[i];
                     var sequence = new Manifesto.Sequence(s, this.options);
                     this.items.push(sequence);
                 }
+            }
+            else if (this.__jsonld.items) {
+                var sequence = new Manifesto.Sequence(this.__jsonld.items, this.options);
+                this.items.push(sequence);
             }
             return this.items;
         };
@@ -1452,6 +1456,12 @@ var Manifesto;
             }
             return this._ranges = this.items.en().where(function (m) { return m.isRange(); }).toArray();
         };
+        Range.prototype.getBehavior = function () {
+            if (this.getProperty('behavior')) {
+                return new Manifesto.Behavior(this.getProperty('behavior'));
+            }
+            return null;
+        };
         Range.prototype.getViewingDirection = function () {
             if (this.getProperty('viewingDirection')) {
                 return new Manifesto.ViewingDirection(this.getProperty('viewingDirection'));
@@ -1488,9 +1498,15 @@ var Manifesto;
             if (ranges && ranges.length) {
                 for (var i = 0; i < ranges.length; i++) {
                     var childRange = ranges[i];
-                    var childNode = new Manifesto.TreeNode();
-                    node.addNode(childNode);
-                    this._parseTreeNode(childNode, childRange);
+                    var behavior = childRange.getBehavior();
+                    if (behavior && behavior.toString() === Manifesto.Behavior.NONAV.toString()) {
+                        continue;
+                    }
+                    else {
+                        var childNode = new Manifesto.TreeNode();
+                        node.addNode(childNode);
+                        this._parseTreeNode(childNode, childRange);
+                    }
                 }
             }
         };
@@ -1548,10 +1564,18 @@ var Manifesto;
             if (this.items.length) {
                 return this.items;
             }
-            var items = this.__jsonld.items || this.__jsonld.canvases || this.__jsonld.elements;
+            var items = this.__jsonld.canvases || this.__jsonld.elements;
             if (items) {
                 for (var i = 0; i < items.length; i++) {
                     var c = items[i];
+                    var canvas = new Manifesto.Canvas(c, this.options);
+                    canvas.index = i;
+                    this.items.push(canvas);
+                }
+            }
+            else if (this.__jsonld) {
+                for (var i = 0; i < this.__jsonld.length; i++) {
+                    var c = this.__jsonld[i];
                     var canvas = new Manifesto.Canvas(c, this.options);
                     canvas.index = i;
                     this.items.push(canvas);
@@ -2492,7 +2516,7 @@ var Manifesto;
                             // nothing worked! Use the most recently tried service as the source of
                             // messages to show to the user.
                             if (lastAttempted) {
-                                showOutOfOptionsMessages(lastAttempted);
+                                showOutOfOptionsMessages(resource, lastAttempted);
                             }
                             return [2 /*return*/];
                     }
@@ -3179,6 +3203,33 @@ var Manifesto;
         return AnnotationPage;
     }(Manifesto.ManifestResource));
     Manifesto.AnnotationPage = AnnotationPage;
+})(Manifesto || (Manifesto = {}));
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var Manifesto;
+(function (Manifesto) {
+    var Behavior = /** @class */ (function (_super) {
+        __extends(Behavior, _super);
+        function Behavior() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        // todo: use getters when ES3 target is no longer required.
+        Behavior.prototype.nonav = function () {
+            return new Behavior(Behavior.NONAV.toString());
+        };
+        Behavior.NONAV = new Behavior("no-nav");
+        return Behavior;
+    }(Manifesto.StringValue));
+    Manifesto.Behavior = Behavior;
 })(Manifesto || (Manifesto = {}));
 
 
