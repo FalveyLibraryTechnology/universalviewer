@@ -176,14 +176,10 @@ export class ContentLeftPanel extends LeftPanel {
 
         this.$treeButton.onPressed(() => {
             this.openTreeView();
-
-            $.publish(BaseEvents.OPEN_TREE_VIEW);
         });
 
         this.$thumbsButton.onPressed(() => {
             this.openThumbsView();
-
-            $.publish(BaseEvents.OPEN_THUMBS_VIEW);
         });
 
         this.setTitle(this.content.title);
@@ -219,7 +215,7 @@ export class ContentLeftPanel extends LeftPanel {
         if (topRanges.length > 1){            
             for (let i = 0; i < topRanges.length; i++){
                 const range: Manifesto.IRange = topRanges[i];
-                this.$treeSelect.append('<option value="' + range.id + '">' + Manifesto.TranslationCollection.getValue(range.getLabel()) + '</option>');
+                this.$treeSelect.append('<option value="' + range.id + '">' + Manifesto.LanguageMap.getValue(range.getLabel()) + '</option>');
             }
         }
 
@@ -292,6 +288,7 @@ export class ContentLeftPanel extends LeftPanel {
     getTreeData(): IIIFComponents.ITreeComponentData {
         return <IIIFComponents.ITreeComponentData>{
             autoExpand: this._isTreeAutoExpanded(),
+            branchNodesExpandOnClick: Utils.Bools.getBool(this.config.options.branchNodesExpandOnClick, true),
             branchNodesSelectable: Utils.Bools.getBool(this.config.options.branchNodesSelectable, false),
             helper: this.extension.helper,
             topRangeIndex: this.getSelectedTopRangeIndex(),
@@ -326,7 +323,7 @@ export class ContentLeftPanel extends LeftPanel {
             }
 
             const currentRange: Manifesto.IRange = topRanges[index];
-            this.setTreeTabTitle(<string>Manifesto.TranslationCollection.getValue(currentRange.getLabel()));
+            this.setTreeTabTitle(<string>Manifesto.LanguageMap.getValue(currentRange.getLabel()));
         } else {
             this.setTreeTabTitle(this.content.index);
         }
@@ -345,7 +342,7 @@ export class ContentLeftPanel extends LeftPanel {
             if (this.treeView){
                 title = this.getSelectedTree().text();
             } else {
-                title = Manifesto.TranslationCollection.getValue(topRanges[0].getLabel());
+                title = Manifesto.LanguageMap.getValue(topRanges[0].getLabel());
             }
         }
 
@@ -356,7 +353,11 @@ export class ContentLeftPanel extends LeftPanel {
         }
     }
 
-    getViewingDirection(): Manifesto.ViewingDirection {
+    getViewingHint(): Manifesto.ViewingHint | null {
+        return this.extension.helper.getViewingHint();
+    }
+
+    getViewingDirection(): Manifesto.ViewingDirection | null {
         return this.extension.helper.getViewingDirection();
     }
 
@@ -371,19 +372,23 @@ export class ContentLeftPanel extends LeftPanel {
         let width: number;
         let height: number;
 
-        const viewingDirection: string = this.getViewingDirection().toString();
+        const viewingHint: Manifesto.ViewingHint | null = this.getViewingHint();
+        const viewingDirection: Manifesto.ViewingDirection | null = this.getViewingDirection();
 
-        if (viewingDirection === manifesto.ViewingDirection.topToBottom().toString() || viewingDirection === manifesto.ViewingDirection.bottomToTop().toString()){
-            width = this.config.options.oneColThumbWidth;
-            height = this.config.options.oneColThumbHeight;
-        } else {
+        if (viewingDirection && (viewingDirection.toString() === manifesto.ViewingDirection.leftToRight().toString() || viewingDirection.toString() === manifesto.ViewingDirection.rightToLeft().toString())) {
             width = this.config.options.twoColThumbWidth;
             height = this.config.options.twoColThumbHeight;
+        } else if (viewingHint && viewingHint.toString() === manifesto.ViewingHint.paged().toString()) {
+            width = this.config.options.twoColThumbWidth;
+            height = this.config.options.twoColThumbHeight;
+        } else {
+            width = this.config.options.oneColThumbWidth;
+            height = this.config.options.oneColThumbHeight;
         }
 
         const thumbs: IThumb[] = <IThumb[]>this.extension.helper.getThumbs(width, height);
 
-        if (viewingDirection === manifesto.ViewingDirection.bottomToTop().toString()){
+        if (viewingDirection && viewingDirection.toString() === manifesto.ViewingDirection.bottomToTop().toString()) {
             thumbs.reverse();
         }
 
@@ -571,6 +576,8 @@ export class ContentLeftPanel extends LeftPanel {
 
         this.resize();
         this.treeView.resize();
+
+        $.publish(BaseEvents.OPEN_TREE_VIEW);
     }
 
     openThumbsView(): void {
@@ -604,6 +611,8 @@ export class ContentLeftPanel extends LeftPanel {
             this.thumbsView.show();
             this.thumbsView.resize();
         }
+
+        $.publish(BaseEvents.OPEN_THUMBS_VIEW);
     }
 
     selectTopRangeIndex(index: number): void {

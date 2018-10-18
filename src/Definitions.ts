@@ -1,5 +1,3 @@
-///<reference path="../node_modules/typescript/lib/lib.es6.d.ts"/>  
-
 interface HTMLElement{
     ontouchstart: any;
 }
@@ -36,7 +34,7 @@ declare var OpenSeadragon: any;
 declare var MediaElementPlayer: any;
 declare var yepnope: any;
 declare var PDFJS: any;
-declare var Sanitize: any;
+declare var filterXSS: (html: string, config: any) => string;
 declare var WEBVR: any;
 
 // app
@@ -53,6 +51,10 @@ interface Window {
     THREE: any;
     Event: any;
     CustomEvent: any;
+    Hls: any;
+    MediaSource: any;
+    WebKitMediaSource: any;
+    WaveformData: any;
 }
 
 interface Document {

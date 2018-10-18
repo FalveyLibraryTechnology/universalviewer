@@ -1,6 +1,6 @@
 import {BaseEvents} from "../uv-shared-module/BaseEvents";
 import {CenterPanel} from "../uv-shared-module/CenterPanel";
-import {UVUtils} from "../uv-shared-module/Utils";
+import {UVUtils} from "../../Utils";
 
 export class FileLinkCenterPanel extends CenterPanel {
 
@@ -66,7 +66,7 @@ export class FileLinkCenterPanel extends CenterPanel {
                     $fileName.text(id.substr(id.lastIndexOf('/') + 1));
                 }
 
-                let label: string | null = Manifesto.TranslationCollection.getValue(annotationBody.getLabel());
+                let label: string | null = Manifesto.LanguageMap.getValue(annotationBody.getLabel());
 
                 if (label) {
                     $label.text(UVUtils.sanitize(label));

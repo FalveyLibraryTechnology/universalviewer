@@ -416,8 +416,8 @@ export class Extension extends BaseExtension implements ISeadragonExtension {
         }
     }
 
-    update(): void {
-        super.update();
+    render(): void {
+        super.render();
 
         //Utils.Async.waitFor(() => {
         //    return this.centerPanel && this.centerPanel.isCreated;
@@ -626,7 +626,7 @@ export class Extension extends BaseExtension implements ISeadragonExtension {
         const bookmark: Bookmark = new Bookmark();
 
         bookmark.index = this.helper.canvasIndex;
-        bookmark.label = <string>Manifesto.TranslationCollection.getValue(canvas.getLabel());
+        bookmark.label = <string>Manifesto.LanguageMap.getValue(canvas.getLabel());
         bookmark.path = <string>this.getCroppedImageUri(canvas, this.getViewer());
         bookmark.thumb = canvas.getCanonicalImageUri(this.data.config.options.bookmarkThumbWidth);
         bookmark.title = this.helper.getLabel();
@@ -889,7 +889,7 @@ export class Extension extends BaseExtension implements ISeadragonExtension {
 
     getEmbedScript(template: string, width: number, height: number, zoom: string, rotation: number): string {
         const config: string = this.data.config.uri || '';
-        const locales: string = this.getSerializedLocales();
+        const locales: string | null = this.getSerializedLocales();
         const appUri: string = this.getAppUri();
         const iframeSrc: string = `${appUri}#?manifest=${this.helper.iiifResourceUri}&c=${this.helper.collectionIndex}&m=${this.helper.manifestIndex}&s=${this.helper.sequenceIndex}&cv=${this.helper.canvasIndex}&config=${config}&locales=${locales}&xywh=${zoom}&r=${rotation}`;
         const script: string = Utils.Strings.format(template, iframeSrc, width.toString(), height.toString());

@@ -1,5 +1,5 @@
-// manifesto v2.2.16 https://github.com/iiif-commons/manifesto
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.manifesto = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
+// manifesto v3.0.9 https://github.com/iiif-commons/manifesto
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.manifesto = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function (global){
 
 var Manifesto;
@@ -19,10 +19,28 @@ var Manifesto;
     Manifesto.StringValue = StringValue;
 })(Manifesto || (Manifesto = {}));
 
+var Manifesto;
+(function (Manifesto) {
+    var Duration = /** @class */ (function () {
+        function Duration(start, end) {
+            this.start = start;
+            this.end = end;
+        }
+        Duration.prototype.getLength = function () {
+            return this.end - this.start;
+        };
+        return Duration;
+    }());
+    Manifesto.Duration = Duration;
+})(Manifesto || (Manifesto = {}));
+
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -99,9 +117,50 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var Manifesto;
+(function (Manifesto) {
+    var Behavior = /** @class */ (function (_super) {
+        __extends(Behavior, _super);
+        function Behavior() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        // todo: use getters when ES3 target is no longer required.
+        Behavior.prototype.autoadvance = function () {
+            return new Behavior(Behavior.AUTOADVANCE.toString());
+        };
+        Behavior.prototype.nonav = function () {
+            return new Behavior(Behavior.NONAV.toString());
+        };
+        Behavior.prototype.paged = function () {
+            return new Behavior(Behavior.PAGED.toString());
+        };
+        Behavior.AUTOADVANCE = new Behavior("auto-advance");
+        Behavior.NONAV = new Behavior("no-nav");
+        Behavior.PAGED = new Behavior("paged");
+        return Behavior;
+    }(Manifesto.StringValue));
+    Manifesto.Behavior = Behavior;
+})(Manifesto || (Manifesto = {}));
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -146,9 +205,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -181,9 +243,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -216,9 +281,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -259,9 +327,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -314,9 +385,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -345,6 +419,9 @@ var Manifesto;
         };
         ServiceProfile.prototype.auth1Logout = function () {
             return new ServiceProfile(ServiceProfile.AUTH1LOGOUT.toString());
+        };
+        ServiceProfile.prototype.auth1Probe = function () {
+            return new ServiceProfile(ServiceProfile.AUTH1PROBE.toString());
         };
         ServiceProfile.prototype.auth1Token = function () {
             return new ServiceProfile(ServiceProfile.AUTH1TOKEN.toString());
@@ -460,6 +537,7 @@ var Manifesto;
         ServiceProfile.AUTH1KIOSK = new ServiceProfile("http://iiif.io/api/auth/1/kiosk");
         ServiceProfile.AUTH1LOGIN = new ServiceProfile("http://iiif.io/api/auth/1/login");
         ServiceProfile.AUTH1LOGOUT = new ServiceProfile("http://iiif.io/api/auth/1/logout");
+        ServiceProfile.AUTH1PROBE = new ServiceProfile("http://iiif.io/api/auth/1/probe");
         ServiceProfile.AUTH1TOKEN = new ServiceProfile("http://iiif.io/api/auth/1/token");
         // search api
         ServiceProfile.AUTOCOMPLETE = new ServiceProfile("http://iiif.io/api/search/0/autocomplete");
@@ -478,9 +556,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -517,9 +598,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -588,9 +672,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -610,7 +697,14 @@ var Manifesto;
             return new Manifesto.IIIFResourceType(Manifesto.Utils.normaliseType(this.getProperty('type')));
         };
         ManifestResource.prototype.getLabel = function () {
-            return Manifesto.TranslationCollection.parse(this.getProperty('label'), this.options.locale);
+            var label = this.getProperty('label');
+            if (label) {
+                return Manifesto.LanguageMap.parse(label, this.options.locale);
+            }
+            return [];
+        };
+        ManifestResource.prototype.getDefaultLabel = function () {
+            return Manifesto.LanguageMap.getValue(this.getLabel());
         };
         ManifestResource.prototype.getMetadata = function () {
             var _metadata = this.getProperty('metadata');
@@ -619,7 +713,7 @@ var Manifesto;
                 return metadata;
             for (var i = 0; i < _metadata.length; i++) {
                 var item = _metadata[i];
-                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                var metadataItem = new Manifesto.LabelValuePair(this.options.locale);
                 metadataItem.parse(item);
                 metadata.push(metadataItem);
             }
@@ -702,9 +796,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -767,9 +864,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -836,7 +936,12 @@ var Manifesto;
                             return thumbnail;
                         }
                         else {
-                            return thumbnail['@id'];
+                            if (thumbnail['@id']) {
+                                return thumbnail['@id'];
+                            }
+                            else if (thumbnail.length) {
+                                return thumbnail[0].id;
+                            }
                         }
                     }
                 }
@@ -963,9 +1068,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -990,16 +1098,17 @@ var Manifesto;
             return _this;
         }
         IIIFResource.prototype.getAttribution = function () {
+            console.warn('getAttribution will be deprecated, use getRequiredStatement instead.');
             var attribution = this.getProperty('attribution');
             if (attribution) {
-                return Manifesto.TranslationCollection.parse(attribution, this.options.locale);
+                return Manifesto.LanguageMap.parse(attribution, this.options.locale);
             }
             return [];
         };
         IIIFResource.prototype.getDescription = function () {
             var description = this.getProperty('description');
             if (description) {
-                return Manifesto.TranslationCollection.parse(description, this.options.locale);
+                return Manifesto.LanguageMap.parse(description, this.options.locale);
             }
             return [];
         };
@@ -1012,7 +1121,10 @@ var Manifesto;
                 return null;
             if (typeof (logo) === 'string')
                 return logo;
-            return logo['@id'];
+            if (Array.isArray(logo) && logo.length) {
+                logo = logo[0];
+            }
+            return logo['@id'] || logo.id;
         };
         IIIFResource.prototype.getLicense = function () {
             return Manifesto.Utils.getLocalisedValue(this.getProperty('license'), this.options.locale);
@@ -1026,20 +1138,27 @@ var Manifesto;
         IIIFResource.prototype.getSeeAlso = function () {
             return this.getProperty('seeAlso');
         };
-        IIIFResource.prototype.getLabel = function () {
-            var label = this.getProperty('label');
-            if (label) {
-                return Manifesto.TranslationCollection.parse(label, this.options.locale);
-            }
-            return [];
-        };
-        IIIFResource.prototype.getDefaultLabel = function () {
-            return Manifesto.TranslationCollection.getValue(this.getLabel());
-        };
         IIIFResource.prototype.getDefaultTree = function () {
             this.defaultTree = new Manifesto.TreeNode('root');
             this.defaultTree.data = this;
             return this.defaultTree;
+        };
+        IIIFResource.prototype.getRequiredStatement = function () {
+            var requiredStatement = null;
+            var _requiredStatement = this.getProperty('requiredStatement');
+            if (_requiredStatement) {
+                requiredStatement = new Manifesto.LabelValuePair(this.options.locale);
+                requiredStatement.parse(_requiredStatement);
+            }
+            else {
+                // fall back to attribution (if it exists)
+                var attribution = this.getAttribution();
+                if (attribution) {
+                    requiredStatement = new Manifesto.LabelValuePair(this.options.locale);
+                    requiredStatement.value = attribution;
+                }
+            }
+            return requiredStatement;
         };
         IIIFResource.prototype.isCollection = function () {
             if (this.getIIIFResourceType().toString() === Manifesto.IIIFResourceType.COLLECTION.toString()) {
@@ -1067,7 +1186,7 @@ var Manifesto;
                         id = that.__jsonld['@id'];
                     }
                     Manifesto.Utils.loadResource(id).then(function (data) {
-                        that.parentLabel = Manifesto.TranslationCollection.getValue(that.getLabel(), options_1.locale);
+                        that.parentLabel = Manifesto.LanguageMap.getValue(that.getLabel(), options_1.locale);
                         var parsed = Manifesto.Deserialiser.parse(data, options_1);
                         that = Object.assign(that, parsed);
                         that.index = options_1.index;
@@ -1082,9 +1201,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1110,6 +1232,23 @@ var Manifesto;
             }
             return _this;
         }
+        Manifest.prototype.getPosterCanvas = function () {
+            var posterCanvas = this.getProperty('posterCanvas');
+            if (posterCanvas) {
+                posterCanvas = new Manifesto.Canvas(posterCanvas, this.options);
+            }
+            return posterCanvas;
+        };
+        Manifest.prototype.getBehavior = function () {
+            var behavior = this.getProperty('behavior');
+            if (Array.isArray(behavior)) {
+                behavior = behavior[0];
+            }
+            if (behavior) {
+                return new Manifesto.Behavior(behavior);
+            }
+            return null;
+        };
         Manifest.prototype.getDefaultTree = function () {
             _super.prototype.getDefaultTree.call(this);
             this.defaultTree.data.type = Manifesto.Utils.normaliseType(Manifesto.TreeNodeType.MANIFEST.toString());
@@ -1284,19 +1423,27 @@ var Manifesto;
             return this.getTotalSequences() > 1;
         };
         Manifest.prototype.isPagingEnabled = function () {
-            return this.getViewingHint().toString() === Manifesto.ViewingHint.PAGED.toString();
+            var viewingHint = this.getViewingHint();
+            if (viewingHint) {
+                return viewingHint.toString() === Manifesto.ViewingHint.PAGED.toString();
+            }
+            var behavior = this.getBehavior();
+            if (behavior) {
+                return behavior.toString() === Manifesto.Behavior.PAGED.toString();
+            }
+            return false;
         };
         Manifest.prototype.getViewingDirection = function () {
             if (this.getProperty('viewingDirection')) {
                 return new Manifesto.ViewingDirection(this.getProperty('viewingDirection'));
             }
-            return Manifesto.ViewingDirection.LEFTTORIGHT;
+            return null;
         };
         Manifest.prototype.getViewingHint = function () {
             if (this.getProperty('viewingHint')) {
                 return new Manifesto.ViewingHint(this.getProperty('viewingHint'));
             }
-            return Manifesto.ViewingHint.EMPTY;
+            return null;
         };
         return Manifest;
     }(Manifesto.IIIFResource));
@@ -1304,9 +1451,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1387,7 +1537,7 @@ var Manifesto;
                 for (var i = 0; i < parentCollection.getManifests().length; i++) {
                     var manifest = parentCollection.getManifests()[i];
                     var tree = manifest.getDefaultTree();
-                    tree.label = manifest.parentLabel || Manifesto.TranslationCollection.getValue(manifest.getLabel(), this.options.locale) || 'manifest ' + (i + 1);
+                    tree.label = manifest.parentLabel || Manifesto.LanguageMap.getValue(manifest.getLabel(), this.options.locale) || 'manifest ' + (i + 1);
                     tree.navDate = manifest.getNavDate();
                     tree.data.id = manifest.id;
                     tree.data.type = Manifesto.Utils.normaliseType(Manifesto.TreeNodeType.MANIFEST.toString());
@@ -1400,7 +1550,7 @@ var Manifesto;
                 for (var i = 0; i < parentCollection.getCollections().length; i++) {
                     var collection = parentCollection.getCollections()[i];
                     var tree = collection.getDefaultTree();
-                    tree.label = collection.parentLabel || Manifesto.TranslationCollection.getValue(collection.getLabel(), this.options.locale) || 'collection ' + (i + 1);
+                    tree.label = collection.parentLabel || Manifesto.LanguageMap.getValue(collection.getLabel(), this.options.locale) || 'collection ' + (i + 1);
                     tree.navDate = collection.getNavDate();
                     tree.data.id = collection.id;
                     tree.data.type = Manifesto.Utils.normaliseType(Manifesto.TreeNodeType.COLLECTION.toString());
@@ -1415,9 +1565,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1444,6 +1597,44 @@ var Manifesto;
             }
             return [];
         };
+        Range.prototype.getDuration = function () {
+            var start;
+            var end;
+            if (this.canvases && this.canvases.length) {
+                for (var i = 0; i < this.canvases.length; i++) {
+                    var canvas = this.canvases[i];
+                    var temporal = Manifesto.Utils.getTemporalComponent(canvas);
+                    if (temporal && temporal.length > 1) {
+                        if (i === 0) {
+                            start = Number(temporal[0]);
+                        }
+                        if (i === this.canvases.length - 1) {
+                            end = Number(temporal[1]);
+                        }
+                    }
+                }
+            }
+            else {
+                // get child ranges and calculate the start and end based on them
+                var childRanges = this.getRanges();
+                for (var i = 0; i < childRanges.length; i++) {
+                    var childRange = childRanges[i];
+                    var duration = childRange.getDuration();
+                    if (duration) {
+                        if (i === 0) {
+                            start = duration.start;
+                        }
+                        if (i === childRanges.length - 1) {
+                            end = duration.end;
+                        }
+                    }
+                }
+            }
+            if (start !== undefined && end !== undefined) {
+                return new Manifesto.Duration(start, end);
+            }
+            return undefined;
+        };
         // getCanvases(): ICanvas[] {
         //     if (this._canvases) {
         //         return this._canvases;
@@ -1457,8 +1648,12 @@ var Manifesto;
             return this._ranges = this.items.en().where(function (m) { return m.isRange(); }).toArray();
         };
         Range.prototype.getBehavior = function () {
-            if (this.getProperty('behavior')) {
-                return new Manifesto.Behavior(this.getProperty('behavior'));
+            var behavior = this.getProperty('behavior');
+            if (Array.isArray(behavior)) {
+                behavior = behavior[0];
+            }
+            if (behavior) {
+                return new Manifesto.Behavior(behavior);
             }
             return null;
         };
@@ -1489,8 +1684,17 @@ var Manifesto;
             Manifesto.Utils.generateTreeNodeIds(treeRoot);
             return treeRoot;
         };
+        Range.prototype.spansTime = function (time) {
+            var duration = this.getDuration();
+            if (duration) {
+                if (time >= duration.start && time <= duration.end) {
+                    return true;
+                }
+            }
+            return false;
+        };
         Range.prototype._parseTreeNode = function (node, range) {
-            node.label = Manifesto.TranslationCollection.getValue(range.getLabel(), this.options.locale);
+            node.label = Manifesto.LanguageMap.getValue(range.getLabel(), this.options.locale);
             node.data = range;
             node.data.type = Manifesto.Utils.normaliseType(Manifesto.TreeNodeType.RANGE.toString());
             range.treeNode = node;
@@ -1516,9 +1720,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1541,9 +1748,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1608,7 +1818,7 @@ var Manifesto;
         };
         Sequence.prototype.getCanvasIndexByLabel = function (label, foliated) {
             label = label.trim();
-            if (!isNaN(label)) {
+            if (!isNaN(label)) { // if the label is numeric
                 label = parseInt(label, 10).toString(); // trim any preceding zeros.
                 if (foliated)
                     label += 'r'; // default to recto
@@ -1618,7 +1828,7 @@ var Manifesto;
             for (var i = 0; i < this.getTotalCanvases(); i++) {
                 var canvas = this.getCanvasByIndex(i);
                 // check if there's a literal match
-                if (Manifesto.TranslationCollection.getValue(canvas.getLabel(), this.options.locale) === label) {
+                if (Manifesto.LanguageMap.getValue(canvas.getLabel(), this.options.locale) === label) {
                     return i;
                 }
                 // check if there's a match for double-page spreads e.g. 100-101, 100_101, 100 101
@@ -1640,7 +1850,7 @@ var Manifesto;
         Sequence.prototype.getLastCanvasLabel = function (alphanumeric) {
             for (var i = this.getTotalCanvases() - 1; i >= 0; i--) {
                 var canvas = this.getCanvasByIndex(i);
-                var label = Manifesto.TranslationCollection.getValue(canvas.getLabel(), this.options.locale);
+                var label = Manifesto.LanguageMap.getValue(canvas.getLabel(), this.options.locale);
                 if (alphanumeric) {
                     var regExp = /^[a-zA-Z0-9]*$/;
                     if (regExp.test(label)) {
@@ -1660,7 +1870,8 @@ var Manifesto;
             var index;
             if (pagingEnabled) {
                 var indices = this.getPagedIndices(canvasIndex);
-                if (this.getViewingDirection().toString() === Manifesto.ViewingDirection.RIGHTTOLEFT.toString()) {
+                var viewingDirection = this.getViewingDirection();
+                if (viewingDirection && viewingDirection.toString() === Manifesto.ViewingDirection.RIGHTTOLEFT.toString()) {
                     index = indices[0] + 1;
                 }
                 else {
@@ -1690,7 +1901,8 @@ var Manifesto;
                 else {
                     indices = [canvasIndex - 1, canvasIndex];
                 }
-                if (this.getViewingDirection().toString() === Manifesto.ViewingDirection.RIGHTTOLEFT.toString()) {
+                var viewingDirection = this.getViewingDirection();
+                if (viewingDirection && viewingDirection.toString() === Manifesto.ViewingDirection.RIGHTTOLEFT.toString()) {
                     indices = indices.reverse();
                 }
             }
@@ -1700,7 +1912,8 @@ var Manifesto;
             var index;
             if (pagingEnabled) {
                 var indices = this.getPagedIndices(canvasIndex);
-                if (this.getViewingDirection().toString() === Manifesto.ViewingDirection.RIGHTTOLEFT.toString()) {
+                var viewingDirection = this.getViewingDirection();
+                if (viewingDirection && viewingDirection.toString() === Manifesto.ViewingDirection.RIGHTTOLEFT.toString()) {
                     index = indices[indices.length - 1] - 1;
                 }
                 else {
@@ -1763,13 +1976,13 @@ var Manifesto;
             else if (this.options.resource.getViewingDirection) {
                 return this.options.resource.getViewingDirection();
             }
-            return Manifesto.ViewingDirection.LEFTTORIGHT;
+            return null;
         };
         Sequence.prototype.getViewingHint = function () {
             if (this.getProperty('viewingHint')) {
                 return new Manifesto.ViewingHint(this.getProperty('viewingHint'));
             }
-            return Manifesto.ViewingHint.EMPTY;
+            return null;
         };
         Sequence.prototype.isCanvasIndexOutOfRange = function (canvasIndex) {
             return canvasIndex > this.getTotalCanvases() - 1;
@@ -1784,7 +1997,11 @@ var Manifesto;
             return this.getTotalCanvases() > 1;
         };
         Sequence.prototype.isPagingEnabled = function () {
-            return this.getViewingHint().toString() === Manifesto.ViewingHint.PAGED.toString();
+            var viewingHint = this.getViewingHint();
+            if (viewingHint) {
+                return viewingHint.toString() === Manifesto.ViewingHint.PAGED.toString();
+            }
+            return false;
         };
         // checks if the number of canvases is even - therefore has a front and back cover
         Sequence.prototype.isTotalCanvasesEven = function () {
@@ -1959,9 +2176,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -2034,7 +2254,7 @@ var Manifesto;
                 this.height = width;
             }
             this.uri = canvas.getCanonicalImageUri(width);
-            this.label = Manifesto.TranslationCollection.getValue(canvas.getLabel()); // todo: pass locale?
+            this.label = Manifesto.LanguageMap.getValue(canvas.getLabel()); // todo: pass locale?
         }
         return Thumb;
     }());
@@ -2069,9 +2289,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -2118,8 +2341,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -2233,6 +2456,9 @@ var Manifesto;
             return Utils.normaliseUrl(url1) === Utils.normaliseUrl(url2);
         };
         Utils.isImageProfile = function (profile) {
+            if (typeof (profile) === 'string') {
+                profile = new Manifesto.ServiceProfile(profile);
+            }
             if (Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECOMPLIANCE0.toString()) ||
                 Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECOMPLIANCE1.toString()) ||
                 Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECOMPLIANCE2.toString()) ||
@@ -2262,6 +2488,9 @@ var Manifesto;
             return false;
         };
         Utils.isLevel0ImageProfile = function (profile) {
+            if (typeof (profile) === 'string') {
+                profile = new Manifesto.ServiceProfile(profile);
+            }
             if (Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECOMPLIANCE0.toString()) ||
                 Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIF1IMAGECOMPLIANCE0.toString()) ||
                 Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECONFORMANCE0.toString()) ||
@@ -2275,6 +2504,9 @@ var Manifesto;
             return false;
         };
         Utils.isLevel1ImageProfile = function (profile) {
+            if (typeof (profile) === 'string') {
+                profile = new Manifesto.ServiceProfile(profile);
+            }
             if (Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECOMPLIANCE1.toString()) ||
                 Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIF1IMAGECOMPLIANCE1.toString()) ||
                 Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECONFORMANCE1.toString()) ||
@@ -2288,6 +2520,9 @@ var Manifesto;
             return false;
         };
         Utils.isLevel2ImageProfile = function (profile) {
+            if (typeof (profile) === 'string') {
+                profile = new Manifesto.ServiceProfile(profile);
+            }
             if (Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECOMPLIANCE2.toString()) ||
                 Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIF1IMAGECOMPLIANCE2.toString()) ||
                 Utils.normalisedUrlsMatch(profile.toString(), Manifesto.ServiceProfile.STANFORDIIIFIMAGECONFORMANCE2.toString()) ||
@@ -2824,6 +3059,14 @@ var Manifesto;
             }
             return services;
         };
+        Utils.getTemporalComponent = function (target) {
+            var temporal = /t=([^&]+)/g.exec(target);
+            var t = null;
+            if (temporal && temporal[1]) {
+                t = temporal[1].split(',');
+            }
+            return t;
+        };
         return Utils;
     }());
     Manifesto.Utils = Utils;
@@ -2831,70 +3074,34 @@ var Manifesto;
 
 var Manifesto;
 (function (Manifesto) {
-    var MetadataItem = /** @class */ (function () {
-        function MetadataItem(defaultLocale) {
-            this.defaultLocale = defaultLocale;
-        }
-        MetadataItem.prototype.parse = function (resource) {
-            this.resource = resource;
-            this.label = Manifesto.TranslationCollection.parse(this.resource.label, this.defaultLocale);
-            this.value = Manifesto.TranslationCollection.parse(this.resource.value, this.defaultLocale);
-        };
-        // shortcuts to get/set values based on default locale
-        MetadataItem.prototype.getLabel = function () {
-            if (this.label) {
-                return Manifesto.TranslationCollection.getValue(this.label, this.defaultLocale);
-            }
-            return null;
-        };
-        MetadataItem.prototype.setLabel = function (value) {
-            var _this = this;
-            if (this.label && this.label.length) {
-                var t = this.label.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
-                if (t)
-                    t.value = value;
-            }
-        };
-        MetadataItem.prototype.getValue = function () {
-            if (this.value) {
-                var locale = this.defaultLocale;
-                // if the label has a locale, prefer that to the default locale
-                if (this.label.length && this.label[0].locale) {
-                    locale = this.label[0].locale;
+    var Language = /** @class */ (function () {
+        function Language(value, locale) {
+            if (Array.isArray(value)) {
+                if (value.length === 1) {
+                    this.value = value[0];
                 }
-                return Manifesto.TranslationCollection.getValue(this.value, locale);
+                else {
+                    // concatenate all of the values
+                    this.value = value.join('<br/>');
+                }
             }
-            return null;
-        };
-        MetadataItem.prototype.setValue = function (value) {
-            var _this = this;
-            if (this.value && this.value.length) {
-                var t = this.value.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
-                if (t)
-                    t.value = value;
+            else {
+                this.value = value;
             }
-        };
-        return MetadataItem;
-    }());
-    Manifesto.MetadataItem = MetadataItem;
-})(Manifesto || (Manifesto = {}));
-
-var Manifesto;
-(function (Manifesto) {
-    var Translation = /** @class */ (function () {
-        function Translation(value, locale) {
-            this.value = value;
             this.locale = locale;
         }
-        return Translation;
+        return Language;
     }());
-    Manifesto.Translation = Translation;
+    Manifesto.Language = Language;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -2903,74 +3110,124 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Manifesto;
 (function (Manifesto) {
-    var TranslationCollection = /** @class */ (function (_super) {
-        __extends(TranslationCollection, _super);
-        function TranslationCollection() {
+    var LanguageMap = /** @class */ (function (_super) {
+        __extends(LanguageMap, _super);
+        function LanguageMap() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        TranslationCollection.parse = function (translation, defaultLocale) {
+        LanguageMap.parse = function (language, defaultLocale) {
             var tc = [];
             var t;
-            if (!translation) {
+            if (!language) {
                 return tc;
             }
-            else if (Array.isArray(translation)) {
-                for (var i = 0; i < translation.length; i++) {
-                    var value = translation[i];
+            else if (Array.isArray(language)) {
+                for (var i = 0; i < language.length; i++) {
+                    var value = language[i];
                     if (typeof (value) === 'string') {
-                        t = new Manifesto.Translation(value, defaultLocale);
+                        t = new Manifesto.Language(value, defaultLocale);
                     }
                     else {
-                        t = new Manifesto.Translation(value['@value'], value['@language'] || defaultLocale);
+                        t = new Manifesto.Language(value['@value'], value['@language'] || defaultLocale);
                     }
                     tc.push(t);
                 }
             }
-            else if (typeof (translation) === 'string') {
-                // if it's just a single string value, create one translation in the configured locale
-                t = new Manifesto.Translation(translation, defaultLocale);
+            else if (typeof (language) === 'string') {
+                // if it's just a single string value, create one language in the configured locale
+                t = new Manifesto.Language(language, defaultLocale);
                 tc.push(t);
                 return tc;
             }
             else {
                 // it's an object
-                if (translation['@value']) {
+                if (language['@value']) {
                     // presentation 2
-                    t = new Manifesto.Translation(translation['@value'], translation['@language'] || defaultLocale);
+                    t = new Manifesto.Language(language['@value'], language['@language'] || defaultLocale);
                     tc.push(t);
                 }
                 else {
                     // presentation 3
-                    Object.keys(translation).forEach(function (key) {
+                    Object.keys(language).forEach(function (key) {
                         // todo: support multiple values in array
-                        if (translation[key].length) {
-                            t = new Manifesto.Translation(translation[key][0], key);
+                        if (language[key].length) {
+                            t = new Manifesto.Language(language[key], key);
                             tc.push(t);
                         }
                         else {
-                            throw new Error('Translation must have a value');
+                            throw new Error('language must have a value');
                         }
                     });
                 }
             }
             return tc;
         };
-        TranslationCollection.getValue = function (translationCollection, locale) {
-            if (translationCollection.length) {
+        LanguageMap.getValue = function (languageCollection, locale) {
+            if (languageCollection.length) {
                 if (locale) {
-                    var translation = translationCollection.en().where(function (t) { return t.locale === locale || Manifesto.Utils.getInexactLocale(t.locale) === Manifesto.Utils.getInexactLocale(locale); }).first();
-                    if (translation) {
-                        return translation.value;
+                    var language = languageCollection.en().where(function (t) { return t.locale === locale || Manifesto.Utils.getInexactLocale(t.locale) === Manifesto.Utils.getInexactLocale(locale); }).first();
+                    if (language) {
+                        return language.value;
                     }
                 }
                 // return the first valuel
-                return translationCollection[0].value;
+                return languageCollection[0].value;
             }
             return null;
         };
-        return TranslationCollection;
+        return LanguageMap;
     }(Array));
-    Manifesto.TranslationCollection = TranslationCollection;
+    Manifesto.LanguageMap = LanguageMap;
+})(Manifesto || (Manifesto = {}));
+
+var Manifesto;
+(function (Manifesto) {
+    var LabelValuePair = /** @class */ (function () {
+        function LabelValuePair(defaultLocale) {
+            this.defaultLocale = defaultLocale;
+        }
+        LabelValuePair.prototype.parse = function (resource) {
+            this.resource = resource;
+            this.label = Manifesto.LanguageMap.parse(this.resource.label, this.defaultLocale);
+            this.value = Manifesto.LanguageMap.parse(this.resource.value, this.defaultLocale);
+        };
+        // shortcuts to get/set values based on default locale
+        LabelValuePair.prototype.getLabel = function () {
+            if (this.label) {
+                return Manifesto.LanguageMap.getValue(this.label, this.defaultLocale);
+            }
+            return null;
+        };
+        LabelValuePair.prototype.setLabel = function (value) {
+            var _this = this;
+            if (this.label && this.label.length) {
+                var t = this.label.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
+                if (t)
+                    t.value = value;
+            }
+        };
+        LabelValuePair.prototype.getValue = function () {
+            if (this.value) {
+                var locale = this.defaultLocale;
+                // if the label has a locale, prefer that to the default locale
+                if (this.label && this.label.length && this.label[0].locale) {
+                    locale = this.label[0].locale;
+                }
+                return Manifesto.LanguageMap.getValue(this.value, locale);
+            }
+            return null;
+        };
+        LabelValuePair.prototype.setValue = function (value) {
+            var _this = this;
+            if (this.value && this.value.length) {
+                var t = this.value.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
+                if (t)
+                    t.value = value;
+            }
+        };
+        return LabelValuePair;
+    }());
+    Manifesto.LabelValuePair = LabelValuePair;
 })(Manifesto || (Manifesto = {}));
 
 var Manifesto;
@@ -2985,19 +3242,19 @@ var Manifesto;
     Manifesto.Size = Size;
 })(Manifesto || (Manifesto = {}));
 
-/// <reference types="http-status-codes" />
 global.manifesto = global.Manifesto = module.exports = {
     AnnotationMotivation: new Manifesto.AnnotationMotivation(),
+    Behavior: new Manifesto.Behavior(),
     IIIFResourceType: new Manifesto.IIIFResourceType(),
+    LabelValuePair: Manifesto.LabelValuePair,
+    Language: Manifesto.Language,
+    LanguageMap: Manifesto.LanguageMap,
     ManifestType: new Manifesto.ManifestType(),
     MediaType: new Manifesto.MediaType(),
-    MetadataItem: Manifesto.MetadataItem,
     RenderingFormat: new Manifesto.RenderingFormat(),
     ResourceType: new Manifesto.ResourceType(),
     ServiceProfile: new Manifesto.ServiceProfile(),
     Size: Manifesto.Size,
-    Translation: Manifesto.Translation,
-    TranslationCollection: Manifesto.TranslationCollection,
     TreeNode: Manifesto.TreeNode,
     TreeNodeType: new Manifesto.TreeNodeType(),
     Utils: Manifesto.Utils,
@@ -3018,9 +3275,12 @@ global.manifesto = global.Manifesto = module.exports = {
 };
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -3043,7 +3303,7 @@ var Manifesto;
                     for (var i = 0; i < body.length; i++) {
                         var b = body[i];
                         if (b.items) {
-                            for (var i_1 = 0; i_1 < b.items.length; i_1++) {
+                            for (var i_1 = 0; i_1 < b.items.length; i_1++) { // todo: don't ignore that it's a choice. maybe add isChoice() to IAnnotationBody?
                                 var c = b.items[i_1];
                                 bodies.push(new Manifesto.AnnotationBody(c, this.options));
                             }
@@ -3088,9 +3348,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -3118,15 +3381,24 @@ var Manifesto;
             }
             return null;
         };
+        AnnotationBody.prototype.getWidth = function () {
+            return this.getProperty('width');
+        };
+        AnnotationBody.prototype.getHeight = function () {
+            return this.getProperty('height');
+        };
         return AnnotationBody;
     }(Manifesto.ManifestResource));
     Manifesto.AnnotationBody = AnnotationBody;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -3181,9 +3453,12 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -3205,33 +3480,6 @@ var Manifesto;
     Manifesto.AnnotationPage = AnnotationPage;
 })(Manifesto || (Manifesto = {}));
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var Manifesto;
-(function (Manifesto) {
-    var Behavior = /** @class */ (function (_super) {
-        __extends(Behavior, _super);
-        function Behavior() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        // todo: use getters when ES3 target is no longer required.
-        Behavior.prototype.nonav = function () {
-            return new Behavior(Behavior.NONAV.toString());
-        };
-        Behavior.NONAV = new Behavior("no-nav");
-        return Behavior;
-    }(Manifesto.StringValue));
-    Manifesto.Behavior = Behavior;
-})(Manifesto || (Manifesto = {}));
-
 
 
 
@@ -3257,9 +3505,12 @@ var Manifesto;
 
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -3279,7 +3530,7 @@ var Manifesto;
 })(Manifesto || (Manifesto = {}));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"http":30,"https":8,"url":35}],2:[function(require,module,exports){
+},{"http":30,"https":8,"url":36}],2:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -3296,68 +3547,102 @@ for (var i = 0, len = code.length; i < len; ++i) {
   revLookup[code.charCodeAt(i)] = i
 }
 
+// Support decoding URL-safe base64 strings, as Node.js does.
+// See: https://en.wikipedia.org/wiki/Base64#URL_applications
 revLookup['-'.charCodeAt(0)] = 62
 revLookup['_'.charCodeAt(0)] = 63
 
-function placeHoldersCount (b64) {
+function getLens (b64) {
   var len = b64.length
+
   if (len % 4 > 0) {
     throw new Error('Invalid string. Length must be a multiple of 4')
   }
 
-  // the number of equal signs (place holders)
-  // if there are two placeholders, than the two characters before it
-  // represent one byte
-  // if there is only one, then the three characters before it represent 2 bytes
-  // this is just a cheap hack to not do indexOf twice
-  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+  // Trim off extra bytes after placeholder bytes are found
+  // See: https://github.com/beatgammit/base64-js/issues/42
+  var validLen = b64.indexOf('=')
+  if (validLen === -1) validLen = len
+
+  var placeHoldersLen = validLen === len
+    ? 0
+    : 4 - (validLen % 4)
+
+  return [validLen, placeHoldersLen]
 }
 
+// base64 is 4/3 + up to two characters of the original data
 function byteLength (b64) {
-  // base64 is 4/3 + up to two characters of the original data
-  return (b64.length * 3 / 4) - placeHoldersCount(b64)
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
+}
+
+function _byteLength (b64, validLen, placeHoldersLen) {
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
 }
 
 function toByteArray (b64) {
-  var i, l, tmp, placeHolders, arr
-  var len = b64.length
-  placeHolders = placeHoldersCount(b64)
+  var tmp
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
 
-  arr = new Arr((len * 3 / 4) - placeHolders)
+  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
+
+  var curByte = 0
 
   // if there are placeholders, only get up to the last complete 4 chars
-  l = placeHolders > 0 ? len - 4 : len
+  var len = placeHoldersLen > 0
+    ? validLen - 4
+    : validLen
 
-  var L = 0
-
-  for (i = 0; i < l; i += 4) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
-    arr[L++] = (tmp >> 16) & 0xFF
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
+  for (var i = 0; i < len; i += 4) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 18) |
+      (revLookup[b64.charCodeAt(i + 1)] << 12) |
+      (revLookup[b64.charCodeAt(i + 2)] << 6) |
+      revLookup[b64.charCodeAt(i + 3)]
+    arr[curByte++] = (tmp >> 16) & 0xFF
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
 
-  if (placeHolders === 2) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
-    arr[L++] = tmp & 0xFF
-  } else if (placeHolders === 1) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
+  if (placeHoldersLen === 2) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 2) |
+      (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[curByte++] = tmp & 0xFF
+  }
+
+  if (placeHoldersLen === 1) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 10) |
+      (revLookup[b64.charCodeAt(i + 1)] << 4) |
+      (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
 
   return arr
 }
 
 function tripletToBase64 (num) {
-  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+  return lookup[num >> 18 & 0x3F] +
+    lookup[num >> 12 & 0x3F] +
+    lookup[num >> 6 & 0x3F] +
+    lookup[num & 0x3F]
 }
 
 function encodeChunk (uint8, start, end) {
   var tmp
   var output = []
   for (var i = start; i < end; i += 3) {
-    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    tmp =
+      ((uint8[i] << 16) & 0xFF0000) +
+      ((uint8[i + 1] << 8) & 0xFF00) +
+      (uint8[i + 2] & 0xFF)
     output.push(tripletToBase64(tmp))
   }
   return output.join('')
@@ -3367,30 +3652,33 @@ function fromByteArray (uint8) {
   var tmp
   var len = uint8.length
   var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
-  var output = ''
   var parts = []
   var maxChunkLength = 16383 // must be multiple of 3
 
   // go through the array every three bytes, we'll deal with trailing stuff later
   for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+    parts.push(encodeChunk(
+      uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)
+    ))
   }
 
   // pad the end with zeros, but make sure to not forget the extra bytes
   if (extraBytes === 1) {
     tmp = uint8[len - 1]
-    output += lookup[tmp >> 2]
-    output += lookup[(tmp << 4) & 0x3F]
-    output += '=='
+    parts.push(
+      lookup[tmp >> 2] +
+      lookup[(tmp << 4) & 0x3F] +
+      '=='
+    )
   } else if (extraBytes === 2) {
-    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
-    output += lookup[tmp >> 10]
-    output += lookup[(tmp >> 4) & 0x3F]
-    output += lookup[(tmp << 2) & 0x3F]
-    output += '='
+    tmp = (uint8[len - 2] << 8) + uint8[len - 1]
+    parts.push(
+      lookup[tmp >> 10] +
+      lookup[(tmp >> 4) & 0x3F] +
+      lookup[(tmp << 2) & 0x3F] +
+      '='
+    )
   }
-
-  parts.push(output)
 
   return parts.join('')
 }
@@ -5690,7 +5978,7 @@ https.request = function (params, cb) {
 },{"http":30}],9:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var nBits = -7
@@ -5703,12 +5991,12 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   e = s & ((1 << (-nBits)) - 1)
   s >>= (-nBits)
   nBits += eLen
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   m = e & ((1 << (-nBits)) - 1)
   e >>= (-nBits)
   nBits += mLen
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   if (e === 0) {
     e = 1 - eBias
@@ -5723,7 +6011,7 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
 
 exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
@@ -5756,7 +6044,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       m = 0
       e = eMax
     } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen)
+      m = ((value * c) - 1) * Math.pow(2, mLen)
       e = e + eBias
     } else {
       m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
@@ -5829,54 +6117,6 @@ module.exports = Array.isArray || function (arr) {
 };
 
 },{}],13:[function(require,module,exports){
-(function (process){
-'use strict';
-
-if (!process.version ||
-    process.version.indexOf('v0.') === 0 ||
-    process.version.indexOf('v1.') === 0 && process.version.indexOf('v1.8.') !== 0) {
-  module.exports = { nextTick: nextTick };
-} else {
-  module.exports = process
-}
-
-function nextTick(fn, arg1, arg2, arg3) {
-  if (typeof fn !== 'function') {
-    throw new TypeError('"callback" argument must be a function');
-  }
-  var len = arguments.length;
-  var args, i;
-  switch (len) {
-  case 0:
-  case 1:
-    return process.nextTick(fn);
-  case 2:
-    return process.nextTick(function afterTickOne() {
-      fn.call(null, arg1);
-    });
-  case 3:
-    return process.nextTick(function afterTickTwo() {
-      fn.call(null, arg1, arg2);
-    });
-  case 4:
-    return process.nextTick(function afterTickThree() {
-      fn.call(null, arg1, arg2, arg3);
-    });
-  default:
-    args = new Array(len - 1);
-    i = 0;
-    while (i < args.length) {
-      args[i++] = arguments[i];
-    }
-    return process.nextTick(function afterTick() {
-      fn.apply(null, args);
-    });
-  }
-}
-
-
-}).call(this,require('_process'))
-},{"_process":14}],14:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -6062,7 +6302,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -6599,7 +6839,7 @@ process.umask = function() { return 0; };
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6685,7 +6925,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6772,13 +7012,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":16,"./encode":17}],19:[function(require,module,exports){
+},{"./decode":15,"./encode":16}],18:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6809,7 +7049,7 @@ exports.encode = exports.stringify = require('./encode');
 
 /*<replacement>*/
 
-var processNextTick = require('process-nextick-args').nextTick;
+var pna = require('process-nextick-args');
 /*</replacement>*/
 
 /*<replacement>*/
@@ -6833,10 +7073,13 @@ var Writable = require('./_stream_writable');
 
 util.inherits(Duplex, Readable);
 
-var keys = objectKeys(Writable.prototype);
-for (var v = 0; v < keys.length; v++) {
-  var method = keys[v];
-  if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable.prototype[method];
+{
+  // avoid scope creep, the keys array can then be collected
+  var keys = objectKeys(Writable.prototype);
+  for (var v = 0; v < keys.length; v++) {
+    var method = keys[v];
+    if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable.prototype[method];
+  }
 }
 
 function Duplex(options) {
@@ -6855,6 +7098,16 @@ function Duplex(options) {
   this.once('end', onend);
 }
 
+Object.defineProperty(Duplex.prototype, 'writableHighWaterMark', {
+  // making it explicit this property is not enumerable
+  // because otherwise some prototype manipulation in
+  // userland will fail
+  enumerable: false,
+  get: function () {
+    return this._writableState.highWaterMark;
+  }
+});
+
 // the no-half-open enforcer
 function onend() {
   // if we allow half-open state, or if the writable side ended,
@@ -6863,7 +7116,7 @@ function onend() {
 
   // no more data can be written.
   // But allow more writes to happen in this tick.
-  processNextTick(onEndNT, this);
+  pna.nextTick(onEndNT, this);
 }
 
 function onEndNT(self) {
@@ -6895,15 +7148,9 @@ Duplex.prototype._destroy = function (err, cb) {
   this.push(null);
   this.end();
 
-  processNextTick(cb, err);
+  pna.nextTick(cb, err);
 };
-
-function forEach(xs, f) {
-  for (var i = 0, l = xs.length; i < l; i++) {
-    f(xs[i], i);
-  }
-}
-},{"./_stream_readable":21,"./_stream_writable":23,"core-util-is":6,"inherits":10,"process-nextick-args":13}],20:[function(require,module,exports){
+},{"./_stream_readable":20,"./_stream_writable":22,"core-util-is":6,"inherits":10,"process-nextick-args":26}],19:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6951,7 +7198,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":22,"core-util-is":6,"inherits":10}],21:[function(require,module,exports){
+},{"./_stream_transform":21,"core-util-is":6,"inherits":10}],20:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6978,7 +7225,7 @@ PassThrough.prototype._transform = function (chunk, encoding, cb) {
 
 /*<replacement>*/
 
-var processNextTick = require('process-nextick-args').nextTick;
+var pna = require('process-nextick-args');
 /*</replacement>*/
 
 module.exports = Readable;
@@ -7450,7 +7697,7 @@ function emitReadable(stream) {
   if (!state.emittedReadable) {
     debug('emitReadable', state.flowing);
     state.emittedReadable = true;
-    if (state.sync) processNextTick(emitReadable_, stream);else emitReadable_(stream);
+    if (state.sync) pna.nextTick(emitReadable_, stream);else emitReadable_(stream);
   }
 }
 
@@ -7469,7 +7716,7 @@ function emitReadable_(stream) {
 function maybeReadMore(stream, state) {
   if (!state.readingMore) {
     state.readingMore = true;
-    processNextTick(maybeReadMore_, stream, state);
+    pna.nextTick(maybeReadMore_, stream, state);
   }
 }
 
@@ -7514,7 +7761,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   var doEnd = (!pipeOpts || pipeOpts.end !== false) && dest !== process.stdout && dest !== process.stderr;
 
   var endFn = doEnd ? onend : unpipe;
-  if (state.endEmitted) processNextTick(endFn);else src.once('end', endFn);
+  if (state.endEmitted) pna.nextTick(endFn);else src.once('end', endFn);
 
   dest.on('unpipe', onunpipe);
   function onunpipe(readable, unpipeInfo) {
@@ -7704,7 +7951,7 @@ Readable.prototype.on = function (ev, fn) {
       state.readableListening = state.needReadable = true;
       state.emittedReadable = false;
       if (!state.reading) {
-        processNextTick(nReadingNextTick, this);
+        pna.nextTick(nReadingNextTick, this);
       } else if (state.length) {
         emitReadable(this);
       }
@@ -7735,7 +7982,7 @@ Readable.prototype.resume = function () {
 function resume(stream, state) {
   if (!state.resumeScheduled) {
     state.resumeScheduled = true;
-    processNextTick(resume_, stream, state);
+    pna.nextTick(resume_, stream, state);
   }
 }
 
@@ -7830,6 +8077,16 @@ Readable.prototype.wrap = function (stream) {
 
   return this;
 };
+
+Object.defineProperty(Readable.prototype, 'readableHighWaterMark', {
+  // making it explicit this property is not enumerable
+  // because otherwise some prototype manipulation in
+  // userland will fail
+  enumerable: false,
+  get: function () {
+    return this._readableState.highWaterMark;
+  }
+});
 
 // exposed for testing purposes only.
 Readable._fromList = fromList;
@@ -7943,7 +8200,7 @@ function endReadable(stream) {
 
   if (!state.endEmitted) {
     state.ended = true;
-    processNextTick(endReadableNT, state, stream);
+    pna.nextTick(endReadableNT, state, stream);
   }
 }
 
@@ -7956,12 +8213,6 @@ function endReadableNT(state, stream) {
   }
 }
 
-function forEach(xs, f) {
-  for (var i = 0, l = xs.length; i < l; i++) {
-    f(xs[i], i);
-  }
-}
-
 function indexOf(xs, x) {
   for (var i = 0, l = xs.length; i < l; i++) {
     if (xs[i] === x) return i;
@@ -7969,7 +8220,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":19,"./internal/streams/BufferList":24,"./internal/streams/destroy":25,"./internal/streams/stream":26,"_process":14,"core-util-is":6,"events":7,"inherits":10,"isarray":12,"process-nextick-args":13,"safe-buffer":29,"string_decoder/":27,"util":3}],22:[function(require,module,exports){
+},{"./_stream_duplex":18,"./internal/streams/BufferList":23,"./internal/streams/destroy":24,"./internal/streams/stream":25,"_process":13,"core-util-is":6,"events":7,"inherits":10,"isarray":12,"process-nextick-args":26,"safe-buffer":29,"string_decoder/":27,"util":3}],21:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -8184,8 +8435,8 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":19,"core-util-is":6,"inherits":10}],23:[function(require,module,exports){
-(function (process,global){
+},{"./_stream_duplex":18,"core-util-is":6,"inherits":10}],22:[function(require,module,exports){
+(function (process,global,setImmediate){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -8215,7 +8466,7 @@ function done(stream, er, data) {
 
 /*<replacement>*/
 
-var processNextTick = require('process-nextick-args').nextTick;
+var pna = require('process-nextick-args');
 /*</replacement>*/
 
 module.exports = Writable;
@@ -8242,7 +8493,7 @@ function CorkedRequest(state) {
 /* </replacement> */
 
 /*<replacement>*/
-var asyncWrite = !process.browser && ['v0.10', 'v0.9.'].indexOf(process.version.slice(0, 5)) > -1 ? setImmediate : processNextTick;
+var asyncWrite = !process.browser && ['v0.10', 'v0.9.'].indexOf(process.version.slice(0, 5)) > -1 ? setImmediate : pna.nextTick;
 /*</replacement>*/
 
 /*<replacement>*/
@@ -8476,7 +8727,7 @@ function writeAfterEnd(stream, cb) {
   var er = new Error('write after end');
   // TODO: defer error events consistently everywhere, not just the cb
   stream.emit('error', er);
-  processNextTick(cb, er);
+  pna.nextTick(cb, er);
 }
 
 // Checks that a user-supplied chunk is valid, especially for the particular
@@ -8493,7 +8744,7 @@ function validChunk(stream, state, chunk, cb) {
   }
   if (er) {
     stream.emit('error', er);
-    processNextTick(cb, er);
+    pna.nextTick(cb, er);
     valid = false;
   }
   return valid;
@@ -8556,6 +8807,16 @@ function decodeChunk(state, chunk, encoding) {
   return chunk;
 }
 
+Object.defineProperty(Writable.prototype, 'writableHighWaterMark', {
+  // making it explicit this property is not enumerable
+  // because otherwise some prototype manipulation in
+  // userland will fail
+  enumerable: false,
+  get: function () {
+    return this._writableState.highWaterMark;
+  }
+});
+
 // if we're already writing something, then just put this
 // in the queue, and wait our turn.  Otherwise, call _write
 // If we return false, then we need a drain event, so set that flag.
@@ -8613,10 +8874,10 @@ function onwriteError(stream, state, sync, er, cb) {
   if (sync) {
     // defer the callback if we are being called synchronously
     // to avoid piling up things on the stack
-    processNextTick(cb, er);
+    pna.nextTick(cb, er);
     // this can emit finish, and it will always happen
     // after error
-    processNextTick(finishMaybe, stream, state);
+    pna.nextTick(finishMaybe, stream, state);
     stream._writableState.errorEmitted = true;
     stream.emit('error', er);
   } else {
@@ -8791,7 +9052,7 @@ function prefinish(stream, state) {
     if (typeof stream._final === 'function') {
       state.pendingcb++;
       state.finalCalled = true;
-      processNextTick(callFinal, stream, state);
+      pna.nextTick(callFinal, stream, state);
     } else {
       state.prefinished = true;
       stream.emit('prefinish');
@@ -8815,7 +9076,7 @@ function endWritable(stream, state, cb) {
   state.ending = true;
   finishMaybe(stream, state);
   if (cb) {
-    if (state.finished) processNextTick(cb);else stream.once('finish', cb);
+    if (state.finished) pna.nextTick(cb);else stream.once('finish', cb);
   }
   state.ended = true;
   stream.writable = false;
@@ -8863,8 +9124,8 @@ Writable.prototype._destroy = function (err, cb) {
   this.end();
   cb(err);
 };
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":19,"./internal/streams/destroy":25,"./internal/streams/stream":26,"_process":14,"core-util-is":6,"inherits":10,"process-nextick-args":13,"safe-buffer":29,"util-deprecate":37}],24:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
+},{"./_stream_duplex":18,"./internal/streams/destroy":24,"./internal/streams/stream":25,"_process":13,"core-util-is":6,"inherits":10,"process-nextick-args":26,"safe-buffer":29,"timers":34,"util-deprecate":38}],23:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -8944,12 +9205,12 @@ if (util && util.inspect && util.inspect.custom) {
     return this.constructor.name + ' ' + obj;
   };
 }
-},{"safe-buffer":29,"util":3}],25:[function(require,module,exports){
+},{"safe-buffer":29,"util":3}],24:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
 
-var processNextTick = require('process-nextick-args').nextTick;
+var pna = require('process-nextick-args');
 /*</replacement>*/
 
 // undocumented cb() API, needed for core, not for public API
@@ -8963,7 +9224,7 @@ function destroy(err, cb) {
     if (cb) {
       cb(err);
     } else if (err && (!this._writableState || !this._writableState.errorEmitted)) {
-      processNextTick(emitErrorNT, this, err);
+      pna.nextTick(emitErrorNT, this, err);
     }
     return this;
   }
@@ -8982,7 +9243,7 @@ function destroy(err, cb) {
 
   this._destroy(err || null, function (err) {
     if (!cb && err) {
-      processNextTick(emitErrorNT, _this, err);
+      pna.nextTick(emitErrorNT, _this, err);
       if (_this._writableState) {
         _this._writableState.errorEmitted = true;
       }
@@ -9019,13 +9280,85 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":13}],26:[function(require,module,exports){
+},{"process-nextick-args":26}],25:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":7}],27:[function(require,module,exports){
+},{"events":7}],26:[function(require,module,exports){
+(function (process){
 'use strict';
 
+if (!process.version ||
+    process.version.indexOf('v0.') === 0 ||
+    process.version.indexOf('v1.') === 0 && process.version.indexOf('v1.8.') !== 0) {
+  module.exports = { nextTick: nextTick };
+} else {
+  module.exports = process
+}
+
+function nextTick(fn, arg1, arg2, arg3) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('"callback" argument must be a function');
+  }
+  var len = arguments.length;
+  var args, i;
+  switch (len) {
+  case 0:
+  case 1:
+    return process.nextTick(fn);
+  case 2:
+    return process.nextTick(function afterTickOne() {
+      fn.call(null, arg1);
+    });
+  case 3:
+    return process.nextTick(function afterTickTwo() {
+      fn.call(null, arg1, arg2);
+    });
+  case 4:
+    return process.nextTick(function afterTickThree() {
+      fn.call(null, arg1, arg2, arg3);
+    });
+  default:
+    args = new Array(len - 1);
+    i = 0;
+    while (i < args.length) {
+      args[i++] = arguments[i];
+    }
+    return process.nextTick(function afterTick() {
+      fn.apply(null, args);
+    });
+  }
+}
+
+
+}).call(this,require('_process'))
+},{"_process":13}],27:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'use strict';
+
+/*<replacement>*/
+
 var Buffer = require('safe-buffer').Buffer;
+/*</replacement>*/
 
 var isEncoding = Buffer.isEncoding || function (encoding) {
   encoding = '' + encoding;
@@ -9137,10 +9470,10 @@ StringDecoder.prototype.fillLast = function (buf) {
 };
 
 // Checks the type of a UTF-8 byte, whether it's ASCII, a leading byte, or a
-// continuation byte.
+// continuation byte. If an invalid byte is detected, -2 is returned.
 function utf8CheckByte(byte) {
   if (byte <= 0x7F) return 0;else if (byte >> 5 === 0x06) return 2;else if (byte >> 4 === 0x0E) return 3;else if (byte >> 3 === 0x1E) return 4;
-  return -1;
+  return byte >> 6 === 0x02 ? -1 : -2;
 }
 
 // Checks at most 3 bytes at the end of a Buffer in order to detect an
@@ -9154,13 +9487,13 @@ function utf8CheckIncomplete(self, buf, i) {
     if (nb > 0) self.lastNeed = nb - 1;
     return nb;
   }
-  if (--j < i) return 0;
+  if (--j < i || nb === -2) return 0;
   nb = utf8CheckByte(buf[j]);
   if (nb >= 0) {
     if (nb > 0) self.lastNeed = nb - 2;
     return nb;
   }
-  if (--j < i) return 0;
+  if (--j < i || nb === -2) return 0;
   nb = utf8CheckByte(buf[j]);
   if (nb >= 0) {
     if (nb > 0) {
@@ -9174,7 +9507,7 @@ function utf8CheckIncomplete(self, buf, i) {
 // Validates as many continuation bytes for a multi-byte UTF-8 character as
 // needed or are available. If we see a non-continuation byte where we expect
 // one, we "replace" the validated continuation bytes we've seen so far with
-// UTF-8 replacement characters ('\ufffd'), to match v8's UTF-8 decoding
+// a single UTF-8 replacement character ('\ufffd'), to match v8's UTF-8 decoding
 // behavior. The continuation byte check is included three times in the case
 // where all of the continuation bytes for a character exist in the same buffer.
 // It is also done this way as a slight performance increase instead of using a
@@ -9182,17 +9515,17 @@ function utf8CheckIncomplete(self, buf, i) {
 function utf8CheckExtraBytes(self, buf, p) {
   if ((buf[0] & 0xC0) !== 0x80) {
     self.lastNeed = 0;
-    return '\ufffd'.repeat(p);
+    return '\ufffd';
   }
   if (self.lastNeed > 1 && buf.length > 1) {
     if ((buf[1] & 0xC0) !== 0x80) {
       self.lastNeed = 1;
-      return '\ufffd'.repeat(p + 1);
+      return '\ufffd';
     }
     if (self.lastNeed > 2 && buf.length > 2) {
       if ((buf[2] & 0xC0) !== 0x80) {
         self.lastNeed = 2;
-        return '\ufffd'.repeat(p + 2);
+        return '\ufffd';
       }
     }
   }
@@ -9223,11 +9556,11 @@ function utf8Text(buf, i) {
   return buf.toString('utf8', i, end);
 }
 
-// For UTF-8, a replacement character for each buffered byte of a (partial)
-// character needs to be added to the output.
+// For UTF-8, a replacement character is added when ending on a partial
+// character.
 function utf8End(buf) {
   var r = buf && buf.length ? this.write(buf) : '';
-  if (this.lastNeed) return r + '\ufffd'.repeat(this.lastTotal - this.lastNeed);
+  if (this.lastNeed) return r + '\ufffd';
   return r;
 }
 
@@ -9304,7 +9637,7 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":19,"./lib/_stream_passthrough.js":20,"./lib/_stream_readable.js":21,"./lib/_stream_transform.js":22,"./lib/_stream_writable.js":23}],29:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":18,"./lib/_stream_passthrough.js":19,"./lib/_stream_readable.js":20,"./lib/_stream_transform.js":21,"./lib/_stream_writable.js":22}],29:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -9371,7 +9704,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
 },{"buffer":4}],30:[function(require,module,exports){
 (function (global){
 var ClientRequest = require('./lib/request')
-var IncomingMessage = require('./lib/response')
+var response = require('./lib/response')
 var extend = require('xtend')
 var statusCodes = require('builtin-status-codes')
 var url = require('url')
@@ -9418,10 +9751,12 @@ http.get = function get (opts, cb) {
 }
 
 http.ClientRequest = ClientRequest
-http.IncomingMessage = IncomingMessage
+http.IncomingMessage = response.IncomingMessage
 
 http.Agent = function () {}
 http.Agent.defaultMaxSockets = 4
+
+http.globalAgent = new http.Agent()
 
 http.STATUS_CODES = statusCodes
 
@@ -9454,7 +9789,7 @@ http.METHODS = [
 	'UNSUBSCRIBE'
 ]
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/request":32,"./lib/response":33,"builtin-status-codes":5,"url":35,"xtend":38}],31:[function(require,module,exports){
+},{"./lib/request":32,"./lib/response":33,"builtin-status-codes":5,"url":36,"xtend":39}],31:[function(require,module,exports){
 (function (global){
 exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
 
@@ -9591,6 +9926,7 @@ var ClientRequest = module.exports = function (opts) {
 		throw new Error('Invalid value for opts.mode')
 	}
 	self._mode = decideMode(preferBinary, useFetch)
+	self._fetchTimer = null
 
 	self.on('finish', function () {
 		self._onFinish()
@@ -9666,13 +10002,14 @@ ClientRequest.prototype._onFinish = function () {
 
 	if (self._mode === 'fetch') {
 		var signal = null
+		var fetchTimer = null
 		if (capability.abortController) {
 			var controller = new AbortController()
 			signal = controller.signal
 			self._fetchAbortController = controller
 
 			if ('requestTimeout' in opts && opts.requestTimeout !== 0) {
-				global.setTimeout(function () {
+				self._fetchTimer = global.setTimeout(function () {
 					self.emit('requestTimeout')
 					if (self._fetchAbortController)
 						self._fetchAbortController.abort()
@@ -9691,7 +10028,9 @@ ClientRequest.prototype._onFinish = function () {
 			self._fetchResponse = response
 			self._connect()
 		}, function (reason) {
-			self.emit('error', reason)
+			global.clearTimeout(self._fetchTimer)
+			if (!self._destroyed)
+				self.emit('error', reason)
 		})
 	} else {
 		var xhr = self._xhr = new global.XMLHttpRequest()
@@ -9791,7 +10130,7 @@ ClientRequest.prototype._connect = function () {
 	if (self._destroyed)
 		return
 
-	self._response = new IncomingMessage(self._xhr, self._fetchResponse, self._mode)
+	self._response = new IncomingMessage(self._xhr, self._fetchResponse, self._mode, self._fetchTimer)
 	self._response.on('error', function(err) {
 		self.emit('error', err)
 	})
@@ -9809,6 +10148,7 @@ ClientRequest.prototype._write = function (chunk, encoding, cb) {
 ClientRequest.prototype.abort = ClientRequest.prototype.destroy = function () {
 	var self = this
 	self._destroyed = true
+	global.clearTimeout(self._fetchTimer)
 	if (self._response)
 		self._response._destroyed = true
 	if (self._xhr)
@@ -9853,12 +10193,11 @@ var unsafeHeaders = [
 	'trailer',
 	'transfer-encoding',
 	'upgrade',
-	'user-agent',
 	'via'
 ]
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"./capability":31,"./response":33,"_process":14,"buffer":4,"inherits":10,"readable-stream":28,"to-arraybuffer":34}],33:[function(require,module,exports){
+},{"./capability":31,"./response":33,"_process":13,"buffer":4,"inherits":10,"readable-stream":28,"to-arraybuffer":35}],33:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -9872,7 +10211,7 @@ var rStates = exports.readyStates = {
 	DONE: 4
 }
 
-var IncomingMessage = exports.IncomingMessage = function (xhr, response, mode) {
+var IncomingMessage = exports.IncomingMessage = function (xhr, response, mode, fetchTimer) {
 	var self = this
 	stream.Readable.call(self)
 
@@ -9907,7 +10246,7 @@ var IncomingMessage = exports.IncomingMessage = function (xhr, response, mode) {
 				write: function (chunk) {
 					return new Promise(function (resolve, reject) {
 						if (self._destroyed) {
-							return
+							reject()
 						} else if(self.push(new Buffer(chunk))) {
 							resolve()
 						} else {
@@ -9916,6 +10255,7 @@ var IncomingMessage = exports.IncomingMessage = function (xhr, response, mode) {
 					})
 				},
 				close: function () {
+					global.clearTimeout(fetchTimer)
 					if (!self._destroyed)
 						self.push(null)
 				},
@@ -9926,7 +10266,11 @@ var IncomingMessage = exports.IncomingMessage = function (xhr, response, mode) {
 			})
 
 			try {
-				response.body.pipeTo(writable)
+				response.body.pipeTo(writable).catch(function (err) {
+					global.clearTimeout(fetchTimer)
+					if (!self._destroyed)
+						self.emit('error', err)
+				})
 				return
 			} catch (e) {} // pipeTo method isn't defined. Can't find a better way to feature test this
 		}
@@ -9937,12 +10281,14 @@ var IncomingMessage = exports.IncomingMessage = function (xhr, response, mode) {
 				if (self._destroyed)
 					return
 				if (result.done) {
+					global.clearTimeout(fetchTimer)
 					self.push(null)
 					return
 				}
 				self.push(new Buffer(result.value))
 				read()
-			}).catch(function(err) {
+			}).catch(function (err) {
+				global.clearTimeout(fetchTimer)
 				if (!self._destroyed)
 					self.emit('error', err)
 			})
@@ -10079,7 +10425,86 @@ IncomingMessage.prototype._onXHRProgress = function () {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"./capability":31,"_process":14,"buffer":4,"inherits":10,"readable-stream":28}],34:[function(require,module,exports){
+},{"./capability":31,"_process":13,"buffer":4,"inherits":10,"readable-stream":28}],34:[function(require,module,exports){
+(function (setImmediate,clearImmediate){
+var nextTick = require('process/browser.js').nextTick;
+var apply = Function.prototype.apply;
+var slice = Array.prototype.slice;
+var immediateIds = {};
+var nextImmediateId = 0;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) { timeout.close(); };
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// That's not how node.js implements it but the exposed api is the same.
+exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+  var id = nextImmediateId++;
+  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+
+  immediateIds[id] = true;
+
+  nextTick(function onNextTick() {
+    if (immediateIds[id]) {
+      // fn.call() is faster so we optimize for the common use-case
+      // @see http://jsperf.com/call-apply-segu
+      if (args) {
+        fn.apply(null, args);
+      } else {
+        fn.call(null);
+      }
+      // Prevent ids from leaking
+      exports.clearImmediate(id);
+    }
+  });
+
+  return id;
+};
+
+exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+  delete immediateIds[id];
+};
+}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
+},{"process/browser.js":13,"timers":34}],35:[function(require,module,exports){
 var Buffer = require('buffer').Buffer
 
 module.exports = function (buf) {
@@ -10108,7 +10533,7 @@ module.exports = function (buf) {
 	}
 }
 
-},{"buffer":4}],35:[function(require,module,exports){
+},{"buffer":4}],36:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -10842,7 +11267,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":36,"punycode":15,"querystring":18}],36:[function(require,module,exports){
+},{"./util":37,"punycode":14,"querystring":17}],37:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -10860,7 +11285,7 @@ module.exports = {
   }
 };
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 (function (global){
 
 /**
@@ -10931,7 +11356,7 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 module.exports = extend
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;

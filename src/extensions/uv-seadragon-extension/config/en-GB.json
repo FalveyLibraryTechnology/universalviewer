@@ -63,6 +63,7 @@
       "options": {
         "autoExpandTreeEnabled": false,
         "autoExpandTreeIfFewerThan": 20,
+        "branchNodesExpandOnClick": true,
         "branchNodesSelectable": false,
         "defaultToTreeEnabled": false,
         "defaultToTreeIfGreaterThan": 0,
@@ -80,6 +81,10 @@
         "panelExpandedWidth": 255,
         "panelOpen": true,
         "tabOrder": "",
+        "thumbsCacheInvalidation": {
+          "enabled": true,
+          "paramType": "?"
+        },
         "thumbsEnabled": true,
         "thumbsExtraHeight": 8,
         "thumbsImageFadeInDuration": 300,
@@ -168,7 +173,7 @@
       "options": {
         "animationTime": 0.15,
         "autoHideControls": true,
-        "attributionEnabled": true,
+        "requiredStatementEnabled": true,
         "blendTime": 0,
         "constrainDuringPan": false,
         "controlsFadeAfterInactive": 1500,

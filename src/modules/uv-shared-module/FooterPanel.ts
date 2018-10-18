@@ -161,7 +161,7 @@ export class FooterPanel extends BaseView {
     updateMoreInfoButton(): void {
         const configEnabled: boolean = Utils.Bools.getBool(this.options.moreInfoEnabled, false);
 
-        if (configEnabled && !this.extension.isDesktopMetric()) {
+        if (configEnabled && !this.extension.isDesktopMetric() && !this.extension.isCatchAllMetric()) {
             this.$moreInfoButton.show();
         } else {
             this.$moreInfoButton.hide();
@@ -189,21 +189,23 @@ export class FooterPanel extends BaseView {
         }
 
         if (this.extension.isFullScreen()) {
-            this.$fullScreenBtn.swapClass('fullScreen', 'exitFullscreen');
-            this.$fullScreenBtn.find('i').swapClass('uv-icon-fullscreen', 'uv-icon-exit-fullscreen');
+            this.$fullScreenBtn.switchClass('fullScreen', 'exitFullscreen');
+            this.$fullScreenBtn.find('i').switchClass('uv-icon-fullscreen', 'uv-icon-exit-fullscreen');
             this.$fullScreenBtn.attr('title', this.content.exitFullScreen);
+            $((<any>this.$fullScreenBtn[0].firstChild).nextSibling.nextSibling).replaceWith(this.content.exitFullScreen);
         } else {
-            this.$fullScreenBtn.swapClass('exitFullscreen', 'fullScreen');
-            this.$fullScreenBtn.find('i').swapClass('uv-icon-exit-fullscreen', 'uv-icon-fullscreen');
+            this.$fullScreenBtn.switchClass('exitFullscreen', 'fullScreen');
+            this.$fullScreenBtn.find('i').switchClass('uv-icon-exit-fullscreen', 'uv-icon-fullscreen');
             this.$fullScreenBtn.attr('title', this.content.fullScreen);
+            $((<any>this.$fullScreenBtn[0].firstChild).nextSibling.nextSibling).replaceWith(this.content.fullScreen);
         }
     }
 
     updateEmbedButton(): void {
         if (this.extension.helper.isUIEnabled('embed') && Utils.Bools.getBool(this.options.embedEnabled, false)) {
             // current jquery version sets display to 'inline' in mobile version, while this should remain hidden (see media query)
-            if (!$.browser.mobile) {
-              this.$embedButton.show();
+            if (!this.extension.isMobile()) {
+                this.$embedButton.show();
             }
         } else {
             this.$embedButton.hide();

@@ -1,12 +1,12 @@
 import {BaseEvents} from "../uv-shared-module/BaseEvents";
 import {RightPanel} from "../uv-shared-module/RightPanel";
-import {UVUtils} from "../uv-shared-module/Utils";
+import {UVUtils} from "../../Utils";
 
 export class MoreInfoRightPanel extends RightPanel {
 
-    metadataComponent: IIIFComponents.IMetadataComponent;
+    metadataComponent: IIIFComponents.MetadataComponent;
     $metadata: JQuery;
-    limitType: IIIFComponents.MetadataComponentOptions.LimitType;
+    limitType: IIIFComponents.LimitType;
     limit: number;
 
     constructor($element: JQuery) {
@@ -23,6 +23,10 @@ export class MoreInfoRightPanel extends RightPanel {
             this.databind();
         });
 
+        $.subscribe(BaseEvents.RANGE_CHANGED, () => {
+            this.databind();
+        });
+
         this.setTitle(this.config.content.title);
 
         this.$metadata = $('<div class="iiif-metadata-component"></div>');
@@ -32,6 +36,20 @@ export class MoreInfoRightPanel extends RightPanel {
             target: this.$metadata[0],
             data: this._getData()
         });
+
+        this.metadataComponent.on('iiifViewerLinkClicked', (href: string) => {
+            // get the hash param.
+            const rangeId: string | null = Utils.Urls.getHashParameterFromString('rid', href);
+
+            if (rangeId) {
+                const range: Manifesto.IRange | null = this.extension.helper.getRangeById(rangeId);
+
+                if (range) {
+                    $.publish(BaseEvents.RANGE_CHANGED, [range]);
+                }
+            }
+
+        }, false);
     }
 
     toggleFinish(): void {
@@ -41,6 +59,11 @@ export class MoreInfoRightPanel extends RightPanel {
 
     databind(): void {
         this.metadataComponent.set(this._getData());
+    }
+
+    private _getCurrentRange(): Manifesto.IRange | null {
+        const range: Manifesto.IRange | null = this.extension.helper.getCurrentRange();
+        return range;
     }
 
     private _getData(): IIIFComponents.IMetadataComponentData {
@@ -55,10 +78,11 @@ export class MoreInfoRightPanel extends RightPanel {
             helper: this.extension.helper,
             licenseFormatter: new Manifold.UriLabeller(this.config.license ? this.config.license : {}), 
             limit: this.config.options.textLimit || 4,
-            limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
+            limitType: IIIFComponents.LimitType.LINES,
+            limitToRange: Utils.Bools.getBool(this.config.options.limitToRange, false),
             manifestDisplayOrder: this.config.options.manifestDisplayOrder,
             manifestExclude: this.config.options.manifestExclude,
-            range: this.extension.getCurrentCanvasRange(),
+            range: this._getCurrentRange(),
             rtlLanguageCodes: this.config.options.rtlLanguageCodes,
             sanitizer: (html) => {
                 return UVUtils.sanitize(html);

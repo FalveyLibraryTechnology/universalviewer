@@ -11,12 +11,22 @@
             
             .btn {
               	color: white;
-              	font-size: 0;
+                font-size: auto;
+                  
+                &.moreInfo {
+                    display: none;
+                }
               
 				&.fullScreen,
 				&.exitFullscreen {
 					float: right;
               	}
+            }
+        }
+
+        .options.minimiseButtons {
+            .btn {
+                font-size: 0;
             }
         }
     }

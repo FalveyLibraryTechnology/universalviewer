@@ -5,7 +5,7 @@ import {Events} from "../../extensions/uv-seadragon-extension/Events";
 import {CroppedImageDimensions} from "../../extensions/uv-seadragon-extension/CroppedImageDimensions";
 import {ISeadragonExtension} from "../../extensions/uv-seadragon-extension/ISeadragonExtension";
 import {ISeadragonExtensionData} from "../../extensions/uv-seadragon-extension/ISeadragonExtensionData";
-import {UVUtils} from "../uv-shared-module/Utils";
+import {UVUtils} from "../../Utils";
 import AnnotationGroup = Manifold.AnnotationGroup;
 import AnnotationRect = Manifold.AnnotationRect;
 
@@ -113,13 +113,6 @@ export class SeadragonCenterPanel extends CenterPanel {
                 this.updateResponsiveView();
             });
         });
-
-    }
-
-    whenResized(cb: () => void): void {
-        Utils.Async.waitFor(() => {
-            return this.isResized;
-        }, cb);
     }
 
     whenCreated(cb: () => void): void {
@@ -156,8 +149,6 @@ export class SeadragonCenterPanel extends CenterPanel {
 
         this.$spinner = $('<div class="spinner"></div>');
         this.$content.append(this.$spinner);
-
-        this.updateAttribution();
 
         // add to window object for testing automation purposes.
         window.openSeadragonViewer = this.viewer = OpenSeadragon({
@@ -336,7 +327,7 @@ export class SeadragonCenterPanel extends CenterPanel {
 
     createNavigationButtons() {
 
-        const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection();
+        const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection() || manifesto.ViewingDirection.leftToRight();
 
         this.$prevButton = $('<div class="paging btn prev" tabindex="0"></div>');
 
@@ -540,7 +531,7 @@ export class SeadragonCenterPanel extends CenterPanel {
 
             $('.navigator').addClass('extraMargin');
 
-            const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection();
+            const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection() || manifesto.ViewingDirection.leftToRight();
 
             if (viewingDirection.toString() === manifesto.ViewingDirection.rightToLeft().toString()) {
                 if (this.extension.helper.isFirstCanvas()) {
@@ -774,7 +765,7 @@ export class SeadragonCenterPanel extends CenterPanel {
             let rect: AnnotationRect = annotationRects[i];
             let viewportBounds: any = this.viewer.viewport.getBounds();
 
-            rect.isVisible = Utils.Measurements.Dimensions.hitRect(viewportBounds.x, viewportBounds.y, viewportBounds.width, viewportBounds.height, rect.viewportX, rect.viewportY);
+            rect.isVisible = Utils.Dimensions.hitRect(viewportBounds.x, viewportBounds.y, viewportBounds.width, viewportBounds.height, rect.viewportX, rect.viewportY);
         }
     }
 
@@ -970,7 +961,7 @@ export class SeadragonCenterPanel extends CenterPanel {
         this.$spinner.css('top', (this.$content.height() / 2) - (this.$spinner.height() / 2));
         this.$spinner.css('left', (this.$content.width() / 2) - (this.$spinner.width() / 2));
 
-        const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection();
+        const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection() || manifesto.ViewingDirection.leftToRight();;
 
         if (this.extension.helper.isMultiCanvas() && this.$prevButton && this.$nextButton) {
 

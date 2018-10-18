@@ -1,21 +1,22 @@
-import {Auth09} from "./Auth09";
-import {Auth1} from "./Auth1";
-import {AuthDialogue} from "../../modules/uv-dialogues-module/AuthDialogue";
-import {BaseEvents} from "./BaseEvents";
-import {ClickThroughDialogue} from "../../modules/uv-dialogues-module/ClickThroughDialogue";
-import {IExtension} from "./IExtension";
-import {ILocale} from "../../ILocale";
-import {ISharePreview} from "./ISharePreview";
-import {IUVComponent} from "../../IUVComponent";
-import {IUVData} from "../../IUVData";
-import {LoginDialogue} from "../../modules/uv-dialogues-module/LoginDialogue";
-import {Metric} from "../../modules/uv-shared-module/Metric";
-import {MetricType} from "../../modules/uv-shared-module/MetricType";
-import {RestrictedDialogue} from "../../modules/uv-dialogues-module/RestrictedDialogue";
-import {Shell} from "./Shell";
-import {SynchronousRequire} from "../../SynchronousRequire";
+import { IDependencies } from "./IDependencies";
+import { UVUtils } from "../../Utils";
+import { Auth09 } from "./Auth09";
+import { Auth1 } from "./Auth1";
+import { AuthDialogue } from "../../modules/uv-dialogues-module/AuthDialogue";
+import { BaseEvents } from "./BaseEvents";
+import { ClickThroughDialogue } from "../../modules/uv-dialogues-module/ClickThroughDialogue";
+import { IExtension } from "./IExtension";
+import { ILocale } from "../../ILocale";
+import { ISharePreview } from "./ISharePreview";
+import { IUVComponent } from "../../IUVComponent";
+import { IUVData } from "../../IUVData";
+import { LoginDialogue } from "../../modules/uv-dialogues-module/LoginDialogue";
+import { Metric } from "../../modules/uv-shared-module/Metric";
+import { MetricType } from "../../modules/uv-shared-module/MetricType";
+import { RestrictedDialogue } from "../../modules/uv-dialogues-module/RestrictedDialogue";
+import { Shell } from "./Shell";
+import { SynchronousRequire } from "../../SynchronousRequire";
 import IThumb = Manifold.IThumb;
-import { UVUtils } from "./Utils";
 
 export class BaseExtension implements IExtension {
 
@@ -65,12 +66,25 @@ export class BaseExtension implements IExtension {
         this.$element.empty();
         this.$element.removeClass();
         this.$element.addClass('uv');
-        this.$element.addClass(this.data.locales[0].name.toLowerCase());
+        if (this.data.locales) {
+            this.$element.addClass(this.data.locales[0].name.toLowerCase());
+        }        
         this.$element.addClass(this.name);
         this.$element.addClass('browser-' + window.browserDetect.browser);
         this.$element.addClass('browser-version-' + window.browserDetect.version);
         this.$element.prop('tabindex', 0);
-        if (this.data.isLightbox) this.$element.addClass('lightbox');
+
+        if (this.isMobile()) {
+            this.$element.addClass('mobile');
+        }
+
+        if (this.data.isLightbox) {
+            this.$element.addClass('lightbox');
+        }
+
+        if (Utils.Documents.supportsFullscreen()) {
+            this.$element.addClass('fullscreen-supported');
+        }
 
         this.$element.on('mousemove', (e) => {
             this.mouseX = e.pageX;
@@ -97,7 +111,12 @@ export class BaseExtension implements IExtension {
                     e.preventDefault();
                     const dropUrl: any = (<any>e.originalEvent).dataTransfer.getData('URL');
                     const a: HTMLAnchorElement = Utils.Urls.getUrlParts(dropUrl);
-                    const iiifResourceUri: string | null = Utils.Urls.getQuerystringParameterFromString('manifest', a.search);
+                    let iiifResourceUri: string | null = Utils.Urls.getQuerystringParameterFromString('manifest', a.search);
+
+                    if (!iiifResourceUri) {
+                        // look for collection param
+                        iiifResourceUri = Utils.Urls.getQuerystringParameterFromString('collection', a.search);
+                    }
                     //var canvasUri = Utils.Urls.getQuerystringParameterFromString('canvas', url.search);
 
                     if (iiifResourceUri) {
@@ -389,7 +408,7 @@ export class BaseExtension implements IExtension {
                 this.helper.rangeId = range.id;
                 this.fire(BaseEvents.RANGE_CHANGED, this.data.rangeId);
             } else {
-                this.data.rangeId = null;
+                this.data.rangeId = undefined;
                 this.helper.rangeId = null;
                 this.fire(BaseEvents.RANGE_CHANGED, null);
             }
@@ -488,7 +507,12 @@ export class BaseExtension implements IExtension {
             let terms: string | null = this.helper.getLicense();
             
             if (!terms) {
-                terms = this.helper.getAttribution();
+                const requiredStatement: Manifold.ILabelValuePair | null = this.helper.getRequiredStatement();
+
+                if (requiredStatement && requiredStatement.value) {
+                    terms = requiredStatement.value;
+                }
+                
             }
             
             if (terms) {
@@ -503,6 +527,12 @@ export class BaseExtension implements IExtension {
         $.subscribe(BaseEvents.TOGGLE_FULLSCREEN, () => {
             $('#top').focus();
             this.component.isFullScreen = !this.component.isFullScreen;
+
+            if (this.component.isFullScreen) {
+                this.$element.addClass('fullscreen');
+            } else {
+                this.$element.removeClass('fullscreen');
+            }
 
             this.fire(BaseEvents.TOGGLE_FULLSCREEN,
                 {
@@ -572,8 +602,22 @@ export class BaseExtension implements IExtension {
 
         if (!scripts.length) {
 
-            requirejs([depsUri], function(deps: any) {
+            requirejs([depsUri], function(getDeps: (formats: string[] | null | null) => IDependencies) {
 
+                // getDeps is a function that accepts a file format.
+                // it uses this to determine which dependencies are appropriate
+                // for example, 'application/vnd.apple.mpegurl' for the AV extension
+                // would return hls.min.js, and not dash.all.min.js.
+                
+                let canvas: Manifesto.ICanvas = that.helper.getCurrentCanvas();
+                const mediaFormats: Manifesto.IAnnotationBody[] | null = that.getMediaFormats(canvas);
+                let formats: string[] = [];
+                if (mediaFormats && mediaFormats.length) {
+                    formats = mediaFormats.map((f: any) => {
+                        return f.getFormat().toString();
+                    });
+                }
+                const deps: IDependencies = getDeps(formats);
                 const baseUri: string = that.data.root + '/lib/';
 
                 // for each dependency, prepend baseUri unless it starts with a ! which indicates to ignore it.
@@ -597,6 +641,7 @@ export class BaseExtension implements IExtension {
                 }
                 
                 cb(deps);
+                
             });
         } else {
             cb(null);
@@ -640,13 +685,13 @@ export class BaseExtension implements IExtension {
         $.publish(BaseEvents.RESIZE); // initial sizing
 
         setTimeout(() => {
-            this.update();
+            this.render();
             $.publish(BaseEvents.CREATED);
             this._setDefaultFocus();
         }, 1);
     }
 
-    public update(): void {
+    public render(): void {
         if (!this.isCreated || (this.data.collectionIndex !== this.helper.collectionIndex)) {
             $.publish(BaseEvents.COLLECTION_INDEX_CHANGED, [this.data.collectionIndex]);
         }
@@ -712,7 +757,7 @@ export class BaseExtension implements IExtension {
 
     private _initLocales(): void {
         const availableLocales: any[] = this.data.config.localisation.locales.slice(0);
-        const configuredLocales: ILocale[] = this.data.locales;
+        const configuredLocales: ILocale[] | undefined = this.data.locales;
         const finalLocales: ILocale[] = [];
 
         // loop through configuredLocales array (those passed in when initialising the UV component)
@@ -722,28 +767,33 @@ export class BaseExtension implements IExtension {
         // if limitLocales is disabled,
         // loop through remaining availableLocales and add to finalLocales.
 
-        configuredLocales.forEach((configuredLocale: ILocale) => {
-            const match: any[] = availableLocales.filter((item: any) => { return item.name === configuredLocale.name; });
-            if (match.length) {
-                var m: any = match[0];
-                if (configuredLocale.label) m.label = configuredLocale.label;
-                m.added = true;
-                finalLocales.push(m);
-            }
-        });
-
-        const limitLocales: boolean = Utils.Bools.getBool(this.data.config.options.limitLocales, false);
-
-        if (!limitLocales) {
-            availableLocales.forEach((availableLocale: any) => {
-                if (!availableLocale.added) {
-                    finalLocales.push(availableLocale);
+        if (configuredLocales) {
+            configuredLocales.forEach((configuredLocale: ILocale) => {
+                const match: any[] = availableLocales.filter((item: any) => { return item.name === configuredLocale.name; });
+                if (match.length) {
+                    var m: any = match[0];
+                    if (configuredLocale.label) m.label = configuredLocale.label;
+                    m.added = true;
+                    finalLocales.push(m);
                 }
-                delete availableLocale.added;
             });
+    
+            const limitLocales: boolean = Utils.Bools.getBool(this.data.config.options.limitLocales, false);
+    
+            if (!limitLocales) {
+                availableLocales.forEach((availableLocale: any) => {
+                    if (!availableLocale.added) {
+                        finalLocales.push(availableLocale);
+                    }
+                    delete availableLocale.added;
+                });
+            }
+    
+            this.data.locales = finalLocales;
+        } else {
+            console.warn("No locales configured");
         }
-
-        this.data.locales = finalLocales;
+        
     }
 
     private _parseMetrics(): void {
@@ -752,7 +802,9 @@ export class BaseExtension implements IExtension {
         if (metrics) {
             for (let i = 0; i < metrics.length; i++) {
                 const m: any = metrics[i];
-                m.type = new MetricType(m.type);
+                if (typeof(m.type) === "string") {
+                    m.type = new MetricType(m.type);
+                }                
                 this.metrics.push(m);
             }
         }
@@ -808,15 +860,14 @@ export class BaseExtension implements IExtension {
         return this.data.config.options.seeAlsoEnabled !== false;
     }
 
-
     getShareUrl(): string | null {
         // If not embedded on an external domain (this causes CORS errors when fetching parent url)
         if (!this.data.embedded) {
             // Use the current page URL with hash params
             if (Utils.Documents.isInIFrame()) {
-                return parent.document.location.href;
+                return (<any>parent.document).location.href;
             } else {
-                return document.location.href;
+                return (<any>document).location.href;
             }            
         } else {
             // If there's a `related` property of format `text/html` in the manifest
@@ -847,7 +898,7 @@ export class BaseExtension implements IExtension {
     }
 
     getAppUri(): string {
-        const parts: any = Utils.Urls.getUrlParts(document.location.href);
+        const parts: any = Utils.Urls.getUrlParts((<any>document).location.href);
         const origin: string = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
         let pathname: string = parts.pathname;
 
@@ -1119,6 +1170,14 @@ export class BaseExtension implements IExtension {
         return this.metric.toString() === MetricType.DESKTOP.toString();
     }
 
+    isWatchMetric(): boolean {
+        return this.metric.toString() === MetricType.WATCH.toString();
+    }
+
+    isCatchAllMetric(): boolean {
+        return this.metric.toString() === MetricType.NONE.toString();
+    }
+
     // todo: use redux in manifold to get reset state
     viewManifest(manifest: Manifesto.IManifest): void {
         const data: IUVData = <IUVData>{};
@@ -1156,7 +1215,10 @@ export class BaseExtension implements IExtension {
             if (this.helper.hasParentCollection()) {
                 return true;
             } else if (this.helper.isMultiCanvas()) {
-                if (this.helper.getViewingHint().toString() !== manifesto.ViewingHint.continuous().toString()) {
+
+                const viewingHint: Manifesto.ViewingHint | null = this.helper.getViewingHint();
+
+                if (!viewingHint || (viewingHint && viewingHint.toString() !== manifesto.ViewingHint.continuous().toString())) {
                     return true;
                 }
             }
@@ -1171,6 +1233,10 @@ export class BaseExtension implements IExtension {
 
     isFooterPanelEnabled(): boolean {
         return Utils.Bools.getBool(this.data.config.options.footerPanelEnabled, true);
+    }
+
+    isMobile(): boolean {
+        return $.browser.mobile;
     }
 
     useArrowKeysToNavigate(): boolean {
@@ -1188,15 +1254,19 @@ export class BaseExtension implements IExtension {
     getAlternateLocale(): ILocale | null {
         let alternateLocale: ILocale | null = null;
 
-        if (this.data.locales.length > 1) {
+        if (this.data.locales && this.data.locales.length > 1) {
             alternateLocale = this.data.locales[1];
         }
 
         return alternateLocale;
     }
 
-    getSerializedLocales(): string {
-        return this.serializeLocales(this.data.locales);
+    getSerializedLocales(): string | null {
+        if (this.data.locales) {
+            return this.serializeLocales(this.data.locales);
+        }
+        
+        return null;
     }
 
     serializeLocales(locales: ILocale[]): string {
@@ -1219,16 +1289,20 @@ export class BaseExtension implements IExtension {
         // re-order locales so the passed locale is first
 
         const data: IUVData = <IUVData>{};
-        data.locales = this.data.locales.slice(0);
 
-        const fromIndex: number = data.locales.findIndex((l: any) => {
-            return l.name === locale;
-        });
+        if (this.data.locales) {
+            data.locales = this.data.locales.slice(0);
 
-        const toIndex: number = 0;
-        data.locales.splice(toIndex, 0, data.locales.splice(fromIndex, 1)[0])
+            const fromIndex: number = data.locales.findIndex((l: any) => {
+                return l.name === locale;
+            });
 
-        this.reload(data);
+            const toIndex: number = 0;
+            data.locales.splice(toIndex, 0, data.locales.splice(fromIndex, 1)[0])
+
+            this.reload(data);
+        }
+        
     }
 
     // auth

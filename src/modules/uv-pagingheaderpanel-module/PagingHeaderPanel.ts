@@ -4,7 +4,7 @@ import {Events} from "../../extensions/uv-seadragon-extension/Events";
 import {HeaderPanel} from "../uv-shared-module/HeaderPanel";
 import {ISeadragonExtension} from "../../extensions/uv-seadragon-extension/ISeadragonExtension";
 import {Mode} from "../../extensions/uv-seadragon-extension/Mode";
-import {UVUtils} from "../uv-shared-module/Utils";
+import {UVUtils} from "../../Utils";
 
 export class PagingHeaderPanel extends HeaderPanel {
 
@@ -117,7 +117,7 @@ export class PagingHeaderPanel extends HeaderPanel {
                     if (this.isPageModeEnabled()) {
                         for (let i = 0; i < canvases.length; i++) {
                             const canvas: Manifesto.ICanvas = canvases[i];
-                            const label: string | null = Manifesto.TranslationCollection.getValue(canvas.getLabel());
+                            const label: string | null = Manifesto.LanguageMap.getValue(canvas.getLabel());
                             if (label && label.startsWith(term)) {
                                 results.push(label);
                             }
@@ -151,7 +151,7 @@ export class PagingHeaderPanel extends HeaderPanel {
 
             for (let imageIndex = 0; imageIndex < this.extension.helper.getTotalCanvases(); imageIndex++) {
                 const canvas: Manifesto.ICanvas = this.extension.helper.getCanvasByIndex(imageIndex);
-                const label: string = UVUtils.sanitize(<string>Manifesto.TranslationCollection.getValue(canvas.getLabel()));
+                const label: string = UVUtils.sanitize(<string>Manifesto.LanguageMap.getValue(canvas.getLabel(), this.extension.helper.options.locale));
                 this.$imageSelectionBox.append('<option value=' + (imageIndex) + '>' + label + '</option>')
             }
 
@@ -246,7 +246,7 @@ export class PagingHeaderPanel extends HeaderPanel {
         this.setNavigationTitles();
         this.setTotal();
 
-        const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection();
+        let viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection() || manifesto.ViewingDirection.leftToRight();
 
         // check if the book has more than one page, otherwise hide prev/next options.
         if (this.extension.helper.getTotalCanvases() === 1) {
@@ -489,7 +489,7 @@ export class PagingHeaderPanel extends HeaderPanel {
 
         if (this.isPageModeEnabled()) {
 
-            const orderLabel: string = <string>Manifesto.TranslationCollection.getValue(canvas.getLabel());
+            const orderLabel: string = <string>Manifesto.LanguageMap.getValue(canvas.getLabel());
 
             if (orderLabel === "-") {
                 value = "";
@@ -556,7 +556,7 @@ export class PagingHeaderPanel extends HeaderPanel {
             this.$imageSelectionBox.val(index);
         }
 
-        const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection();
+        const viewingDirection: Manifesto.ViewingDirection = this.extension.helper.getViewingDirection() || manifesto.ViewingDirection.leftToRight();
 
         if (viewingDirection.toString() === manifesto.ViewingDirection.rightToLeft().toString()) {
             if (this.extension.helper.isFirstCanvas()){

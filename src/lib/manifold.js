@@ -1,5 +1,5 @@
-// @iiif/manifold v1.2.24 https://github.com/iiif-commons/manifold#readme
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.iiifmanifold = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+// @iiif/manifold v1.2.36 https://github.com/iiif-commons/manifold#readme
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.iiifmanifold = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function (global){
 
 var Manifold;
@@ -228,10 +228,12 @@ var Manifold;
             this.authHoldingPage = null;
             this.clickThroughService = null;
             this.externalService = null;
+            this.isProbed = false;
             this.isResponseHandled = false;
             this.kioskService = null;
             this.loginService = null;
             this.logoutService = null;
+            this.probeService = null;
             this.restrictedService = null;
             this.tokenService = null;
             canvas.externalResource = this;
@@ -242,34 +244,51 @@ var Manifold;
             // get the height and width of the image resource if available
             this._parseDimensions(canvas);
         }
+        ExternalResource.prototype._getImageServiceDescriptor = function (services) {
+            var infoUri = null;
+            for (var i = 0; i < services.length; i++) {
+                var service = services[i];
+                var id = service.id;
+                if (!id.endsWith('/')) {
+                    id += '/';
+                }
+                if (manifesto.Utils.isImageProfile(service.getProfile())) {
+                    infoUri = id + 'info.json';
+                }
+            }
+            return infoUri;
+        };
         ExternalResource.prototype._getDataUri = function (canvas) {
             var content = canvas.getContent();
             var images = canvas.getImages();
+            var infoUri = null;
+            // presentation 3
             if (content && content.length) {
                 var annotation = content[0];
                 var annotationBody = annotation.getBody();
                 if (annotationBody.length) {
+                    var body = annotationBody[0];
+                    var services = body.getServices();
+                    if (services.length) {
+                        infoUri = this._getImageServiceDescriptor(services);
+                        if (infoUri) {
+                            return infoUri;
+                        }
+                    }
+                    // no image services. return the image id
                     return annotationBody[0].id;
                 }
                 return null;
             }
             else if (images && images.length) {
-                var infoUri = null;
                 var firstImage = images[0];
                 var resource = firstImage.getResource();
                 var services = resource.getServices();
                 if (services.length) {
-                    for (var i = 0; i < services.length; i++) {
-                        var service = services[i];
-                        var id = service.id;
-                        if (!id.endsWith('/')) {
-                            id += '/';
-                        }
-                        if (manifesto.Utils.isImageProfile(service.getProfile())) {
-                            infoUri = id + 'info.json';
-                        }
+                    infoUri = this._getImageServiceDescriptor(services);
+                    if (infoUri) {
+                        return infoUri;
                     }
-                    return infoUri;
                 }
                 // no image services. return the image id
                 return resource.id;
@@ -303,6 +322,17 @@ var Manifold;
                 }
             }
             else {
+                // if the resource is a canvas, not an info.json, look for auth services on its content.
+                if (resource.isCanvas !== undefined && resource.isCanvas()) {
+                    var content = resource.getContent();
+                    if (content && content.length) {
+                        var body = content[0].getBody();
+                        if (body && body.length) {
+                            var annotation = body[0];
+                            resource = annotation;
+                        }
+                    }
+                }
                 this.clickThroughService = manifesto.Utils.getService(resource, manifesto.ServiceProfile.auth1Clickthrough().toString());
                 this.loginService = manifesto.Utils.getService(resource, manifesto.ServiceProfile.auth1Login().toString());
                 this.externalService = manifesto.Utils.getService(resource, manifesto.ServiceProfile.auth1External().toString());
@@ -310,18 +340,22 @@ var Manifold;
                 if (this.clickThroughService) {
                     this.logoutService = this.clickThroughService.getService(manifesto.ServiceProfile.auth1Logout().toString());
                     this.tokenService = this.clickThroughService.getService(manifesto.ServiceProfile.auth1Token().toString());
+                    this.probeService = this.clickThroughService.getService(manifesto.ServiceProfile.auth1Probe().toString());
                 }
                 else if (this.loginService) {
                     this.logoutService = this.loginService.getService(manifesto.ServiceProfile.auth1Logout().toString());
                     this.tokenService = this.loginService.getService(manifesto.ServiceProfile.auth1Token().toString());
+                    this.probeService = this.loginService.getService(manifesto.ServiceProfile.auth1Probe().toString());
                 }
                 else if (this.externalService) {
                     this.logoutService = this.externalService.getService(manifesto.ServiceProfile.auth1Logout().toString());
                     this.tokenService = this.externalService.getService(manifesto.ServiceProfile.auth1Token().toString());
+                    this.probeService = this.externalService.getService(manifesto.ServiceProfile.auth1Probe().toString());
                 }
                 else if (this.kioskService) {
                     this.logoutService = this.kioskService.getService(manifesto.ServiceProfile.auth1Logout().toString());
                     this.tokenService = this.kioskService.getService(manifesto.ServiceProfile.auth1Token().toString());
+                    this.probeService = this.kioskService.getService(manifesto.ServiceProfile.auth1Probe().toString());
                 }
             }
         };
@@ -333,9 +367,21 @@ var Manifold;
                 this.width = resource.getWidth();
                 this.height = resource.getHeight();
             }
+            else {
+                // presentation 3
+                images = canvas.getContent();
+                if (images.length) {
+                    var annotation = images[0];
+                    var body = annotation.getBody();
+                    if (body.length) {
+                        this.width = body[0].getWidth();
+                        this.height = body[0].getHeight();
+                    }
+                }
+            }
         };
         ExternalResource.prototype.isAccessControlled = function () {
-            if (this.clickThroughService || this.loginService || this.externalService || this.kioskService) {
+            if (this.clickThroughService || this.loginService || this.externalService || this.kioskService || this.probeService) {
                 return true;
             }
             return false;
@@ -354,68 +400,92 @@ var Manifold;
                 if (!_this.dataUri) {
                     reject('There is no dataUri to fetch');
                 }
-                // check if dataUri ends with info.json
-                // if not issue a HEAD request.
-                var type = 'GET';
-                if (!that.hasServiceDescriptor()) {
-                    // If access control is unnecessary, short circuit the process.
-                    // Note that isAccessControlled check for short-circuiting only
-                    // works in the "binary resource" context, since in that case,
-                    // we know about access control from the manifest. For image
-                    // resources, we need to check info.json for details and can't
-                    // short-circuit like this.
-                    if (!that.isAccessControlled()) {
-                        that.status = HTTPStatusCode.OK;
-                        resolve(that);
-                        return;
-                    }
-                    type = 'HEAD';
-                }
-                $.ajax({
-                    url: that.dataUri,
-                    type: type,
-                    dataType: 'json',
-                    beforeSend: function (xhr) {
-                        if (accessToken) {
-                            xhr.setRequestHeader("Authorization", "Bearer " + accessToken.accessToken);
-                        }
-                    }
-                }).done(function (data) {
-                    // if it's a resource without an info.json
-                    // todo: if resource doesn't have a @profile
-                    if (!data) {
-                        that.status = HTTPStatusCode.OK;
-                        resolve(that);
-                    }
-                    else {
-                        var uri = unescape(data['@id']);
-                        that.data = data;
-                        that._parseAuthServices(that.data);
-                        // remove trailing /info.json
-                        if (uri.endsWith('/info.json')) {
-                            uri = uri.substr(0, uri.lastIndexOf('/'));
-                        }
-                        var dataUri = that.dataUri;
-                        if (dataUri && dataUri.endsWith('/info.json')) {
-                            dataUri = dataUri.substr(0, dataUri.lastIndexOf('/'));
-                        }
-                        // if the request was redirected to a degraded version and there's a login service to get the full quality version
-                        if (uri !== dataUri && that.loginService) {
+                // if the resource has a probe service, use that to get http status code
+                if (that.probeService && !that.isProbed) {
+                    that.isProbed = true;
+                    $.ajax({
+                        url: that.probeService.id,
+                        type: 'GET',
+                        dataType: 'json'
+                    }).done(function (data) {
+                        var contentLocation = unescape(data.contentLocation);
+                        if (contentLocation !== that.dataUri) {
                             that.status = HTTPStatusCode.MOVED_TEMPORARILY;
                         }
                         else {
                             that.status = HTTPStatusCode.OK;
                         }
                         resolve(that);
+                    }).fail(function (error) {
+                        that.status = error.status;
+                        that.error = error;
+                        resolve(that);
+                    });
+                }
+                else {
+                    // check if dataUri ends with info.json
+                    // if not issue a HEAD request.
+                    var type = 'GET';
+                    if (!that.hasServiceDescriptor()) {
+                        // If access control is unnecessary, short circuit the process.
+                        // Note that isAccessControlled check for short-circuiting only
+                        // works in the "binary resource" context, since in that case,
+                        // we know about access control from the manifest. For image
+                        // resources, we need to check info.json for details and can't
+                        // short-circuit like this.
+                        if (!that.isAccessControlled()) {
+                            that.status = HTTPStatusCode.OK;
+                            resolve(that);
+                            return;
+                        }
+                        type = 'HEAD';
                     }
-                }).fail(function (error) {
-                    that.status = error.status;
-                    that.error = error;
-                    if (error.responseJSON) {
-                        that._parseAuthServices(error.responseJSON);
-                    }
-                    resolve(that);
-                });
+                    $.ajax({
+                        url: that.dataUri,
+                        type: type,
+                        dataType: 'json',
+                        beforeSend: function (xhr) {
+                            if (accessToken) {
+                                xhr.setRequestHeader("Authorization", "Bearer " + accessToken.accessToken);
+                            }
+                        }
+                    }).done(function (data) {
+                        // if it's a resource without an info.json
+                        // todo: if resource doesn't have a @profile
+                        if (!data) {
+                            that.status = HTTPStatusCode.OK;
+                            resolve(that);
+                        }
+                        else {
+                            var uri = unescape(data['@id']);
+                            that.data = data;
+                            that._parseAuthServices(that.data);
+                            // remove trailing /info.json
+                            if (uri.endsWith('/info.json')) {
+                                uri = uri.substr(0, uri.lastIndexOf('/'));
+                            }
+                            var dataUri = that.dataUri;
+                            if (dataUri && dataUri.endsWith('/info.json')) {
+                                dataUri = dataUri.substr(0, dataUri.lastIndexOf('/'));
+                            }
+                            // if the request was redirected to a degraded version and there's a login service to get the full quality version
+                            if (uri !== dataUri && that.loginService) {
+                                that.status = HTTPStatusCode.MOVED_TEMPORARILY;
+                            }
+                            else {
+                                that.status = HTTPStatusCode.OK;
+                            }
+                            resolve(that);
+                        }
+                    }).fail(function (error) {
+                        that.status = error.status;
+                        that.error = error;
+                        if (error.responseJSON) {
+                            that._parseAuthServices(error.responseJSON);
+                        }
+                        resolve(that);
+                    });
+                }
             });
         };
         return ExternalResource;
@@ -445,9 +515,10 @@ var Manifold;
             return null;
         };
         Helper.prototype.getAttribution = function () {
+            console.warn('getAttribution will be deprecated, use getRequiredStatement instead.');
             var attribution = this.manifest.getAttribution();
             if (attribution) {
-                return Manifesto.TranslationCollection.getValue(attribution, this.options.locale);
+                return Manifesto.LanguageMap.getValue(attribution, this.options.locale);
             }
             return null;
         };
@@ -519,7 +590,7 @@ var Manifold;
         Helper.prototype.getDescription = function () {
             var description = this.manifest.getDescription();
             if (description) {
-                return Manifesto.TranslationCollection.getValue(description, this.options.locale);
+                return Manifesto.LanguageMap.getValue(description, this.options.locale);
             }
             return null;
         };
@@ -529,7 +600,7 @@ var Manifold;
         Helper.prototype.getLabel = function () {
             var label = this.manifest.getLabel();
             if (label) {
-                return Manifesto.TranslationCollection.getValue(label, this.options.locale);
+                return Manifesto.LanguageMap.getValue(label, this.options.locale);
             }
             return null;
         };
@@ -561,15 +632,15 @@ var Manifold;
                 manifestGroup.addMetadata(manifestMetadata, true);
             }
             if (this.manifest.getDescription().length) {
-                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
-                metadataItem.label = [new Manifesto.Translation("description", this.options.locale)];
+                var metadataItem = new Manifesto.LabelValuePair(this.options.locale);
+                metadataItem.label = [new Manifesto.Language("description", this.options.locale)];
                 metadataItem.value = this.manifest.getDescription();
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
             if (this.manifest.getAttribution().length) {
-                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
-                metadataItem.label = [new Manifesto.Translation("attribution", this.options.locale)];
+                var metadataItem = new Manifesto.LabelValuePair(this.options.locale);
+                metadataItem.label = [new Manifesto.Language("attribution", this.options.locale)];
                 metadataItem.value = this.manifest.getAttribution();
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
@@ -580,7 +651,7 @@ var Manifold;
                     label: "license",
                     value: (options && options.licenseFormatter) ? options.licenseFormatter.format(license) : license
                 };
-                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                var metadataItem = new Manifesto.LabelValuePair(this.options.locale);
                 metadataItem.parse(item);
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
@@ -590,7 +661,7 @@ var Manifold;
                     label: "logo",
                     value: '<img src="' + this.manifest.getLogo() + '"/>'
                 };
-                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                var metadataItem = new Manifesto.LabelValuePair(this.options.locale);
                 metadataItem.parse(item);
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
@@ -602,6 +673,16 @@ var Manifold;
             else {
                 return metadataGroups;
             }
+        };
+        Helper.prototype.getRequiredStatement = function () {
+            var requiredStatement = this.manifest.getRequiredStatement();
+            if (requiredStatement) {
+                return {
+                    label: requiredStatement.getLabel(),
+                    value: requiredStatement.getValue()
+                };
+            }
+            return null;
         };
         Helper.prototype._parseMetadataOptions = function (options, metadataGroups) {
             // get sequence metadata
@@ -650,12 +731,10 @@ var Manifold;
                 rangeGroup.addMetadata(rangeMetadata);
                 metadataGroups.push(rangeGroup);
             }
-            if (range.parentRange) {
+            else if (range.parentRange) {
                 return this._getRangeMetadata(metadataGroups, range.parentRange);
             }
-            else {
-                return metadataGroups;
-            }
+            return metadataGroups;
         };
         Helper.prototype.getMultiSelectState = function () {
             if (!this._multiSelectState) {
@@ -668,6 +747,21 @@ var Manifold;
         Helper.prototype.getCurrentRange = function () {
             if (this.rangeId) {
                 return this.getRangeById(this.rangeId);
+            }
+            return null;
+        };
+        Helper.prototype.getPosterCanvas = function () {
+            return this.manifest.getPosterCanvas();
+        };
+        Helper.prototype.getPosterImage = function () {
+            var posterCanvas = this.getPosterCanvas();
+            if (posterCanvas) {
+                var content = posterCanvas.getContent();
+                if (content && content.length) {
+                    var anno = content[0];
+                    var body = anno.getBody();
+                    return body[0].id;
+                }
             }
             return null;
         };
@@ -689,9 +783,7 @@ var Manifold;
                         while (i > 0) {
                             i--;
                             var prevNode = flatTree[i];
-                            if (prevNode.data.canvases && prevNode.data.canvases.length) {
-                                return prevNode.data;
-                            }
+                            return prevNode.data;
                         }
                         break;
                     }
@@ -860,14 +952,14 @@ var Manifold;
         };
         Helper.prototype.getViewingDirection = function () {
             var viewingDirection = this.getCurrentSequence().getViewingDirection();
-            if (!viewingDirection.toString()) {
+            if (!viewingDirection) {
                 viewingDirection = this.manifest.getViewingDirection();
             }
             return viewingDirection;
         };
         Helper.prototype.getViewingHint = function () {
             var viewingHint = this.getCurrentSequence().getViewingHint();
-            if (!viewingHint.toString()) {
+            if (!viewingHint) {
                 viewingHint = this.manifest.getViewingHint();
             }
             return viewingHint;
@@ -890,13 +982,21 @@ var Manifold;
             return canvas.getResources().length > 0;
         };
         Helper.prototype.isBottomToTop = function () {
-            return this.getViewingDirection().toString() === manifesto.ViewingDirection.bottomToTop().toString();
+            var viewingDirection = this.getViewingDirection();
+            if (viewingDirection) {
+                return viewingDirection.toString() === manifesto.ViewingDirection.bottomToTop().toString();
+            }
+            return false;
         };
         Helper.prototype.isCanvasIndexOutOfRange = function (index) {
             return this.getCurrentSequence().isCanvasIndexOutOfRange(index);
         };
         Helper.prototype.isContinuous = function () {
-            return this.getViewingHint().toString() === manifesto.ViewingHint.continuous().toString();
+            var viewingHint = this.getViewingHint();
+            if (viewingHint) {
+                return viewingHint.toString() === manifesto.ViewingHint.continuous().toString();
+            }
+            return false;
         };
         Helper.prototype.isFirstCanvas = function (index) {
             if (typeof index !== 'undefined') {
@@ -914,7 +1014,11 @@ var Manifold;
             return this.getCurrentSequence().isLastCanvas(this.canvasIndex);
         };
         Helper.prototype.isLeftToRight = function () {
-            return this.getViewingDirection().toString() === manifesto.ViewingDirection.leftToRight().toString();
+            var viewingDirection = this.getViewingDirection();
+            if (viewingDirection) {
+                return viewingDirection.toString() === manifesto.ViewingDirection.leftToRight().toString();
+            }
+            return false;
         };
         Helper.prototype.isMultiCanvas = function () {
             return this.getCurrentSequence().isMultiCanvas();
@@ -923,7 +1027,13 @@ var Manifold;
             return this.manifest.isMultiSequence();
         };
         Helper.prototype.isPaged = function () {
-            return this.getViewingHint().toString() === manifesto.ViewingHint.paged().toString();
+            // check the sequence for a viewingHint (deprecated)
+            var viewingHint = this.getViewingHint();
+            if (viewingHint) {
+                return viewingHint.toString() === manifesto.ViewingHint.paged().toString();
+            }
+            // check the manifest for a viewingHint (deprecated) or paged behavior
+            return this.manifest.isPagingEnabled();
         };
         Helper.prototype.isPagingAvailable = function () {
             // paged mode is useless unless you have at least 3 pages...
@@ -933,10 +1043,18 @@ var Manifold;
             return (this.manifest.isPagingEnabled() || this.getCurrentSequence().isPagingEnabled());
         };
         Helper.prototype.isRightToLeft = function () {
-            return this.getViewingDirection().toString() === manifesto.ViewingDirection.rightToLeft().toString();
+            var viewingDirection = this.getViewingDirection();
+            if (viewingDirection) {
+                return viewingDirection.toString() === manifesto.ViewingDirection.rightToLeft().toString();
+            }
+            return false;
         };
         Helper.prototype.isTopToBottom = function () {
-            return this.getViewingDirection().toString() === manifesto.ViewingDirection.topToBottom().toString();
+            var viewingDirection = this.getViewingDirection();
+            if (viewingDirection) {
+                return viewingDirection.toString() === manifesto.ViewingDirection.topToBottom().toString();
+            }
+            return false;
         };
         Helper.prototype.isTotalCanvasesEven = function () {
             return this.getCurrentSequence().isTotalCanvasesEven();
@@ -1116,6 +1234,16 @@ var Manifold;
 })(Manifold || (Manifold = {}));
 
 
+
+var Manifold;
+(function (Manifold) {
+    var ILabelValuePair = /** @class */ (function () {
+        function ILabelValuePair() {
+        }
+        return ILabelValuePair;
+    }());
+    Manifold.ILabelValuePair = ILabelValuePair;
+})(Manifold || (Manifold = {}));
 
 
 
