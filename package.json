@@ -76,7 +76,7 @@
     "@types/requirejs": "2.1.28",
     "@types/three": "0.84.20",
     "@universalviewer/uv-cy-gb-theme": "1.1.2",
-    "@universalviewer/uv-en-gb-theme": "1.1.2",
+    "@universalviewer/uv-en-gb-theme": "FalveyLibraryTechnology/uv-en-gb-theme#vudiglib",
     "core-js": "2.4.1",
     "dashjs": "2.6.7",
     "hls.js": "0.9.1",
@@ -92,9 +92,6 @@
     "pdfjs-dist": "2.0.161",
     "requirejs": "2.2.0",
     "three": "0.91.0",
-    "utils": "edsilv/utils#v0.2.1",
-    "uv-cy-gb-theme": "UniversalViewer/uv-cy-gb-theme#v1.1.1",
-    "uv-en-gb-theme": "FalveyLibraryTechnology/uv-en-gb-theme#vudiglib",
     "virtex3d": "0.3.14",
     "waveform-data": "2.0.2",
     "xss": "1.0.3"
