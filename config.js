@@ -22,6 +22,10 @@ module.exports = function () {
             'node_modules/jquery/dist/jquery.min.js',
             'node_modules/jsviews/jsviews.min.js',
             'node_modules/core-js/client/shim.min.js'
+        ],
+        offlinenojquery: [
+            'node_modules/jsviews/jsviews.min.js',
+            'node_modules/core-js/client/shim.min.js'
         ]
     };
     this.directories = {

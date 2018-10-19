@@ -104,6 +104,13 @@ module.exports = function (grunt) {
                     {
                         expand: true,
                         flatten: true,
+                        src: [config.directories.lib + '/offlinenojquery.js'],
+                        dest: config.directories.build + '/lib'
+                    },
+                    // js
+                    {
+                        expand: true,
+                        flatten: true,
                         src: [config.directories.src + '/helpers.js'],
                         dest: config.directories.build,
                         rename: function(dest, src) {
@@ -236,6 +243,11 @@ module.exports = function (grunt) {
                 cwd: '.',
                 src: config.dependencies.offline,
                 dest: config.directories.lib + '/offline.js'
+            },
+            offlinenojquery: {
+                cwd: '.',
+                src: config.dependencies.offlinenojquery,
+                dest: config.directories.lib + '/offlinenojquery.js'
             }
         },
 
@@ -347,6 +359,7 @@ module.exports = function (grunt) {
             'sync',
             'copy:bundle',
             'concat:offline',
+            'concat:offlinenojquery',
             tsType,
             'clean:extension',
             'configure:apply',
