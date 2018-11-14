@@ -1,5 +1,3 @@
-import { } from 'Jest';
-
 import { UVUtils } from './Utils';
 
 describe('Utils', () => {

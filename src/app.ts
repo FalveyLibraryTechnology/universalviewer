@@ -22,7 +22,7 @@ if (typeof jQuery === "function") {
     return;
 })();
 
-// uv.js
+// bundled into dist/uv.js
 // - things in src/lib that are generic to all extensions
 // - bundled data providers
 // - UVComponent
@@ -65,5 +65,5 @@ requirejs([
 ) => {
     window.UV = UVComponent.default;
     window.UV.URLDataProvider = URLDataProvider.default;
-    window.dispatchEvent(new CustomEvent('uvLoaded'));
+    window.dispatchEvent(new CustomEvent('uvLoaded', {}));
 });

@@ -28,11 +28,16 @@ export class GalleryView extends BaseView {
 
         this.$gallery = $('<div class="iiif-gallery-component"></div>');
         this.$element.append(this.$gallery);
+
+        // stencil.js demo
+        // const gallery = document.createElement('iiif-gallery');
+        // gallery.setAttribute('manifest', this.extension.helper.manifest.id);
+        // this.$element[0].appendChild(gallery);
     }
 
     public setup(): void {
         this.galleryComponent = new IIIFComponents.GalleryComponent({
-            target: this.$gallery[0]
+            target:  <HTMLElement>this.$gallery[0]
         });
 
         this.galleryComponent.on('thumbSelected', function(thumb: any) {
